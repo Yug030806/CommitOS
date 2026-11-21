@@ -9,6 +9,10 @@
 [![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-8E75B2?style=flat-square&logo=google)](https://aistudio.google.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v3-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald?style=flat-square)](LICENSE)
+[![User Guide](https://img.shields.io/badge/Manual-Complete_User_Guide-white?style=flat-square&logo=markdown)](USER_GUIDE.md)
+
+> 📖 **Looking for a complete feature walkthrough and roles guide?**  
+> Check out the [Complete User Guide](USER_GUIDE.md) for step-by-step instructions on every feature, role permissions, and real-world workflows.
 
 ---
 
