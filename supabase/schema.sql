@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     actor_id TEXT,
     actor_name TEXT NOT NULL,
     actor_role TEXT,
-    action TEXT NOT NULL, -- e.g. 'DECISION_APPROVED', 'ROLE_MODIFIED', 'CONFLICT_RATIFIED'
+    action TEXT NOT NULL,
     entity_type TEXT NOT NULL,
     entity_id TEXT NOT NULL,
     metadata JSONB,
@@ -195,7 +195,7 @@ CREATE INDEX IF NOT EXISTS idx_conflicts_org ON public.decision_conflicts(organi
 CREATE INDEX IF NOT EXISTS idx_memories_org ON public.organizational_memories(organization_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_org ON public.audit_logs(organization_id);
 
--- 17. ROW LEVEL SECURITY (RLS)
+-- 17. ROW LEVEL SECURITY (RLS) POLICIES (Idempotent with DROP IF EXISTS)
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.organization_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meetings ENABLE ROW LEVEL SECURITY;
@@ -206,37 +206,83 @@ ALTER TABLE public.organizational_memories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.execution_risks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
--- Permissive policy for demo and service role (allows seamless hackathon evaluation)
+DROP POLICY IF EXISTS "Public read for organizations" ON public.organizations;
 CREATE POLICY "Public read for organizations" ON public.organizations FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow insert for organizations" ON public.organizations;
+CREATE POLICY "Allow insert for organizations" ON public.organizations FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update for organizations" ON public.organizations;
+CREATE POLICY "Allow update for organizations" ON public.organizations FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Public read for members" ON public.organization_members;
 CREATE POLICY "Public read for members" ON public.organization_members FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow insert for members" ON public.organization_members;
+CREATE POLICY "Allow insert for members" ON public.organization_members FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update for members" ON public.organization_members;
+CREATE POLICY "Allow update for members" ON public.organization_members FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Allow delete for members" ON public.organization_members;
+CREATE POLICY "Allow delete for members" ON public.organization_members FOR DELETE USING (true);
+
+DROP POLICY IF EXISTS "Public read for meetings" ON public.meetings;
 CREATE POLICY "Public read for meetings" ON public.meetings FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow insert for meetings" ON public.meetings;
+CREATE POLICY "Allow insert for meetings" ON public.meetings FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update for meetings" ON public.meetings;
+CREATE POLICY "Allow update for meetings" ON public.meetings FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Public read for decisions" ON public.decisions;
 CREATE POLICY "Public read for decisions" ON public.decisions FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow insert for decisions" ON public.decisions;
+CREATE POLICY "Allow insert for decisions" ON public.decisions FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update for decisions" ON public.decisions;
+CREATE POLICY "Allow update for decisions" ON public.decisions FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Public read for conflicts" ON public.decision_conflicts;
 CREATE POLICY "Public read for conflicts" ON public.decision_conflicts FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow insert for conflicts" ON public.decision_conflicts;
+CREATE POLICY "Allow insert for conflicts" ON public.decision_conflicts FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update for conflicts" ON public.decision_conflicts;
+CREATE POLICY "Allow update for conflicts" ON public.decision_conflicts FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Public read for tasks" ON public.tasks;
 CREATE POLICY "Public read for tasks" ON public.tasks FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow insert for tasks" ON public.tasks;
+CREATE POLICY "Allow insert for tasks" ON public.tasks FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update for tasks" ON public.tasks;
+CREATE POLICY "Allow update for tasks" ON public.tasks FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Public read for memories" ON public.organizational_memories;
 CREATE POLICY "Public read for memories" ON public.organizational_memories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow insert for memories" ON public.organizational_memories;
+CREATE POLICY "Allow insert for memories" ON public.organizational_memories FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public read for risks" ON public.execution_risks;
 CREATE POLICY "Public read for risks" ON public.execution_risks FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow insert for risks" ON public.execution_risks;
+CREATE POLICY "Allow insert for risks" ON public.execution_risks FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public read for audit_logs" ON public.audit_logs;
 CREATE POLICY "Public read for audit_logs" ON public.audit_logs FOR SELECT USING (true);
 
--- Allow inserts and updates
-CREATE POLICY "Allow insert for organizations" ON public.organizations FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow update for organizations" ON public.organizations FOR UPDATE USING (true);
-CREATE POLICY "Allow insert for members" ON public.organization_members FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow update for members" ON public.organization_members FOR UPDATE USING (true);
-CREATE POLICY "Allow delete for members" ON public.organization_members FOR DELETE USING (true);
-CREATE POLICY "Allow insert for meetings" ON public.meetings FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow update for meetings" ON public.meetings FOR UPDATE USING (true);
-CREATE POLICY "Allow insert for decisions" ON public.decisions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow update for decisions" ON public.decisions FOR UPDATE USING (true);
-CREATE POLICY "Allow insert for conflicts" ON public.decision_conflicts FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow update for conflicts" ON public.decision_conflicts FOR UPDATE USING (true);
-CREATE POLICY "Allow insert for tasks" ON public.tasks FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow update for tasks" ON public.tasks FOR UPDATE USING (true);
-CREATE POLICY "Allow insert for memories" ON public.organizational_memories FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert for risks" ON public.execution_risks FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow insert for audit_logs" ON public.audit_logs;
 CREATE POLICY "Allow insert for audit_logs" ON public.audit_logs FOR INSERT WITH CHECK (true);
 
 -- ==============================================================================
--- 18. SEED DATA: SVIT PODCAST CLUB (Hackathon Demonstration Dataset)
+-- 18. SEED DATA (SVIT Podcast Club Demonstration Dataset)
 -- ==============================================================================
 
 -- Seed Users
@@ -313,10 +359,10 @@ VALUES
   ('risk-001', 'org-svit-podcast', 'HIGH', 'Date Conflict Blocks Marketing & Venue Booking', 'Proposed shift from Dec 15 to Dec 20 creates uncertainty for posters and venue agreements.', ARRAY['task-201', 'task-202'], 'May incur cancellation fee at auditorium and delays marketing outreach by 5 days.', 'Admin must ratify or reject the date change in Meeting 3 Triage.', false)
 ON CONFLICT (id) DO UPDATE SET risk_level = EXCLUDED.risk_level;
 
--- Seed Audit Logs
+-- Seed Audit Logs (using jsonb_build_object to guarantee 100% valid JSON syntax without character escape issues)
 INSERT INTO public.audit_logs (id, organization_id, actor_id, actor_name, actor_role, action, entity_type, entity_id, metadata)
 VALUES
-  ('audit-001', 'org-svit-podcast', 'usr-yug-01', 'Yug Patel', 'org_admin', 'DECISION_APPROVED', 'decision', 'dec-101', '{"title": "Annual Flagship Event Date", "value": "December 15, 2026"}'),
-  ('audit-002', 'org-svit-podcast', 'usr-yug-01', 'Yug Patel', 'org_admin', 'ROLE_ASSIGNED', 'member', 'mem-002', '{"role": "team_leader", "title": "Marketing Lead"}'),
-  ('audit-003', 'org-svit-podcast', 'usr-yash-03', 'Yash Mehta', 'team_leader', 'CONFLICT_SUBMITTED', 'conflict', 'conf-001', '{"proposedValue": "December 20, 2026", "previousValue": "December 15, 2026"}')
+  ('audit-001', 'org-svit-podcast', 'usr-yug-01', 'Yug Patel', 'org_admin', 'DECISION_APPROVED', 'decision', 'dec-101', jsonb_build_object('title', 'Annual Flagship Event Date', 'value', 'December 15, 2026')),
+  ('audit-002', 'org-svit-podcast', 'usr-yug-01', 'Yug Patel', 'org_admin', 'ROLE_ASSIGNED', 'member', 'mem-002', jsonb_build_object('role', 'team_leader', 'title', 'Marketing Lead')),
+  ('audit-003', 'org-svit-podcast', 'usr-yash-03', 'Yash Mehta', 'team_leader', 'CONFLICT_SUBMITTED', 'conflict', 'conf-001', jsonb_build_object('proposedValue', 'December 20, 2026', 'previousValue', 'December 15, 2026'))
 ON CONFLICT (id) DO UPDATE SET action = EXCLUDED.action;
