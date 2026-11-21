@@ -76,6 +76,11 @@ export async function POST(req: NextRequest) {
       success: true,
       message: `Server successfully verified and ratified conflict triage as ${action}.`,
       action,
+      resolution: {
+        status: action,
+        notes: resolutionNotes,
+        triageAt: new Date().toISOString(),
+      },
       auditRecord,
     });
   } catch (err: any) {

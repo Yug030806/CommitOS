@@ -24,7 +24,7 @@ import { RBAC, ROLE_DEFINITIONS } from '@/lib/rbac';
 import { Lock, ShieldCheck } from 'lucide-react';
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(() => CommitOSStore.getTasks());
   const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'calendar'>('kanban');
   const [search, setSearch] = useState('');
   const [assigneeFilter, setAssigneeFilter] = useState('all');

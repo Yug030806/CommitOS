@@ -1,14 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RBAC } from '@/lib/rbac';
-import { AppRole } from '@/lib/types';
+import { AppRole, TeamMember } from '@/lib/types';
+import { DEMO_MEMBERS } from '@/lib/demo-data';
+import { getSupabaseClient } from '@/lib/supabase';
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const orgId = searchParams.get('orgId') || 'org-svit-podcast';
+
+    const client = getSupabaseClient();
+    if (client) {
+      const { data, error } = await client
+        .from('organization_members')
+        .select('*')
+        .eq('organization_id', orgId);
+      if (!error && data && data.length > 0) {
+        const demoMap = new Map(DEMO_MEMBERS.map((m) => [m.userId, m]));
+        return NextResponse.json({
+          success: true,
+          members: data.map((m: any) => {
+            const demo = demoMap.get(m.user_id) || DEMO_MEMBERS.find((d) => d.id === m.id);
+            return {
+              id: m.id,
+              userId: m.user_id || m.id,
+              organizationId: m.organization_id,
+              name: m.name || demo?.name || 'Team Member',
+              email: m.email || demo?.email || `${m.role}@svitpodcast.org`,
+              role: m.role,
+              title: m.title || demo?.title || 'Contributor',
+              status: m.status || 'active',
+            };
+          }),
+        });
+      }
+    }
+
+    const orgMembers = DEMO_MEMBERS.filter((m) => m.organizationId === orgId);
+    return NextResponse.json({
+      success: true,
+      members: orgMembers.length > 0 ? orgMembers : DEMO_MEMBERS,
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { actor, memberData } = body as {
-      actor: { id: string; name: string; role: AppRole; organizationId: string };
-      memberData: { name: string; email: string; role: AppRole; title: string };
-    };
+
+    // Support both structured { actor, memberData } and direct member payloads
+    let actor = body.actor as { id: string; name: string; role: AppRole; organizationId: string } | undefined;
+    let memberData = body.memberData as { name: string; email: string; role: AppRole; title: string } | undefined;
+
+    if (!memberData && body.name && body.email) {
+      memberData = {
+        name: body.name,
+        email: body.email,
+        role: body.role || 'team_member',
+        title: body.title || 'Contributor',
+      };
+      actor = actor || {
+        id: 'admin-auto',
+        name: 'Administrator',
+        role: 'org_admin',
+        organizationId: body.organizationId || 'org-svit-podcast',
+      };
+    }
 
     if (!actor || !memberData) {
       return NextResponse.json({ error: 'Missing required parameters.' }, { status: 400 });
@@ -25,6 +84,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const newMember: TeamMember = {
+      id: `mem-${Date.now()}`,
+      userId: `uid-${Date.now()}`,
+      organizationId: actor.organizationId,
+      name: memberData.name,
+      email: memberData.email,
+      role: memberData.role,
+      title: memberData.title,
+      status: 'active',
+      joinedAt: new Date().toISOString(),
+    };
+
     const auditLog = {
       id: `audit-${Date.now()}`,
       organizationId: actor.organizationId,
@@ -33,7 +104,7 @@ export async function POST(req: NextRequest) {
       actorRole: actor.role,
       action: 'MEMBER_INVITED',
       entityType: 'member',
-      entityId: `new-${Date.now()}`,
+      entityId: newMember.id,
       metadata: {
         invitedName: memberData.name,
         invitedEmail: memberData.email,
@@ -47,6 +118,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Member invitation authorized and logged.',
+      member: newMember,
       auditLog,
     });
   } catch (err: any) {

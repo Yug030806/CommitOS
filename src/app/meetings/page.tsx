@@ -22,7 +22,7 @@ import { Lock } from 'lucide-react';
 import UploadMeetingModal from '@/components/meetings/UploadMeetingModal';
 
 export default function MeetingsPage() {
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [meetings, setMeetings] = useState<Meeting[]>(() => CommitOSStore.getMeetings());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'processed' | 'needs_review'>('all');
   const [isUploadOpen, setIsUploadOpen] = useState(false);

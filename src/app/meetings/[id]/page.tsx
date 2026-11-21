@@ -28,8 +28,12 @@ interface PageProps {
 
 export default function MeetingDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
-  const [meeting, setMeeting] = useState<Meeting | null>(null);
-  const [conflicts, setConflicts] = useState<DecisionConflict[]>([]);
+  const [meeting, setMeeting] = useState<Meeting | null>(
+    () => CommitOSStore.getMeetingById(resolvedParams.id) || null
+  );
+  const [conflicts, setConflicts] = useState<DecisionConflict[]>(() =>
+    CommitOSStore.getConflicts().filter((c) => c.newMeetingId === resolvedParams.id)
+  );
   const [activeTab, setActiveTab] = useState<'overview' | 'transcript' | 'decisions' | 'tasks' | 'insights'>('overview');
   const [transcriptSearch, setTranscriptSearch] = useState('');
 

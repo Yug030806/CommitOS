@@ -19,9 +19,9 @@ import { CommitOSStore } from '@/lib/store';
 import { OrganizationalMemory, Decision, DecisionHistoryItem } from '@/lib/types';
 
 export default function MemoryPage() {
-  const [memories, setMemories] = useState<OrganizationalMemory[]>([]);
-  const [decisions, setDecisions] = useState<Decision[]>([]);
-  const [history, setHistory] = useState<DecisionHistoryItem[]>([]);
+  const [memories, setMemories] = useState<OrganizationalMemory[]>(() => CommitOSStore.getMemories());
+  const [decisions, setDecisions] = useState<Decision[]>(() => CommitOSStore.getDecisions());
+  const [history, setHistory] = useState<DecisionHistoryItem[]>(() => CommitOSStore.getDecisionHistory());
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
