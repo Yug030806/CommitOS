@@ -112,17 +112,14 @@ export default function Sidebar() {
       <div>
         <div className="p-4 border-b border-[#1f1f27]">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-zinc-100 to-zinc-400 flex items-center justify-center text-black font-black text-sm shadow-sm group-hover:scale-105 transition-transform">
-              C
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-white text-base tracking-tight">CommitOS</span>
-                <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
-                  RBAC
-                </span>
-              </div>
-              <p className="text-[11px] text-zinc-400 font-normal">AI Decision & Execution</p>
+            <img
+              src="/logo-icon-white.png"
+              alt="CommitOS"
+              className="w-8 h-8 object-contain rounded-lg group-hover:scale-105 transition-transform shrink-0"
+            />
+            <div className="min-w-0">
+              <span className="font-bold text-white text-base tracking-tight block">CommitOS</span>
+              <p className="text-[10px] text-zinc-400 font-normal truncate">AI Decision &amp; Execution</p>
             </div>
           </Link>
         </div>

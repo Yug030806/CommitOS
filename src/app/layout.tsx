@@ -5,6 +5,10 @@ import AppShell from '@/components/layout/AppShell';
 export const metadata: Metadata = {
   title: 'CommitOS – AI Decision & Execution Intelligence',
   description: 'Your Meetings. Now, Executed. Intelligent meeting memory, cross-meeting decision conflict detection, and predictive execution risk analysis.',
+  icons: {
+    icon: '/logo-icon-white.png',
+    apple: '/logo-icon-white.png',
+  },
 };
 
 export default function RootLayout({

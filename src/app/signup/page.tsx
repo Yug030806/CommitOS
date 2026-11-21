@@ -80,28 +80,35 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 selection:bg-white selection:text-black">
-      {/* 3D Organic Dark Geometry Background */}
+      {/* 3D Organic Logo Background */}
       <AuthBackground />
 
-      {/* Main Glassmorphic Card Container */}
+      {/* Main Glassmorphic Card Container with Reduced Opacity */}
       <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-300 my-8">
-        <div className="rounded-3xl bg-black/40 backdrop-blur-2xl border border-white/10 p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)]">
-          {/* Header (Matches Screenshot Typography) */}
-          <div className="text-center mb-7">
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">
+        <div className="rounded-3xl bg-black/25 backdrop-blur-md border border-white/10 p-8 sm:p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]">
+          {/* Brand Logo Header */}
+          <div className="text-center mb-6">
+            <div className="flex justify-center mb-3">
+              <img
+                src="/logo-white.png"
+                alt="CommitOS"
+                className="h-8 w-auto object-contain drop-shadow-[0_2px_12px_rgba(255,255,255,0.25)]"
+              />
+            </div>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight">
               Create Account
             </h1>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-2">
-              Sign up to join your organizational workspace
+            <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+              Join your organizational workspace
             </p>
           </div>
 
-          {/* Role Portal Segmented Control (Translucent Glass Tabs) */}
+          {/* Role Portal Segmented Control (Translucent Glass Tabs - Low Opacity) */}
           <div className="space-y-1.5 mb-5">
             <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
               Role Portal
             </label>
-            <div className="grid grid-cols-3 p-1 rounded-xl bg-white/[0.04] backdrop-blur-md border border-white/10">
+            <div className="grid grid-cols-3 p-1 rounded-xl bg-black/20 backdrop-blur-sm border border-white/10">
               {(['org_admin', 'team_leader', 'team_member'] as AppRole[]).map((r) => {
                 const isSelected = selectedRole === r;
                 const label = r === 'org_admin' ? 'Admin' : r === 'team_leader' ? 'Leader' : 'Member';
@@ -112,8 +119,8 @@ export default function SignUpPage() {
                     onClick={() => setSelectedRole(r)}
                     className={`py-2 text-xs rounded-lg transition-all text-center ${
                       isSelected
-                        ? 'bg-white/[0.16] text-white font-bold backdrop-blur-lg border border-white/25 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
-                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent font-medium'
+                        ? 'bg-white/[0.08] text-white font-bold backdrop-blur-sm border border-white/20 shadow-[0_0_12px_rgba(255,255,255,0.06)]'
+                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent font-medium'
                     }`}
                   >
                     {label}
@@ -135,7 +142,7 @@ export default function SignUpPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Choose a username"
-                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-all font-normal"
+                className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 backdrop-blur-xs transition-all font-normal"
               />
             </div>
 
@@ -149,7 +156,7 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-all font-normal"
+                className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 backdrop-blur-xs transition-all font-normal"
               />
             </div>
 
@@ -163,7 +170,7 @@ export default function SignUpPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-all font-normal font-mono"
+                className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 backdrop-blur-xs transition-all font-normal font-mono"
               />
             </div>
 
@@ -174,7 +181,7 @@ export default function SignUpPage() {
               <select
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
-                className="w-full px-4 py-3.5 rounded-xl bg-zinc-900 border border-white/10 text-sm text-white focus:outline-none focus:border-white/30 transition-all"
+                className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-sm text-white focus:outline-none focus:border-white/30 transition-all"
               >
                 {allOrgs.map((o) => (
                   <option key={o.id} value={o.name}>
@@ -185,7 +192,7 @@ export default function SignUpPage() {
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-white/[0.05] border border-white/15 text-xs text-zinc-300 flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-black/30 border border-white/15 text-xs text-zinc-300 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-zinc-400" />
                 <span>{error}</span>
               </div>
