@@ -156,9 +156,20 @@ export default function AnalyticsPage() {
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#181822',
-                    borderColor: '#2b2b3a',
+                    borderColor: '#3f3f46',
                     borderRadius: '8px',
-                    fontSize: '11px',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
+                  }}
+                  itemStyle={{
+                    color: '#ffffff',
+                    fontWeight: 500,
+                  }}
+                  labelStyle={{
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    marginBottom: '4px',
                   }}
                 />
                 <Bar dataKey="Completed" fill="#f4f4f5" radius={[4, 4, 0, 0]} />
@@ -196,9 +207,20 @@ export default function AnalyticsPage() {
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#181822',
-                    borderColor: '#2b2b3a',
+                    borderColor: '#3f3f46',
                     borderRadius: '8px',
-                    fontSize: '11px',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
+                  }}
+                  itemStyle={{
+                    color: '#ffffff',
+                    fontWeight: 500,
+                  }}
+                  labelStyle={{
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    marginBottom: '4px',
                   }}
                 />
               </PieChart>
@@ -235,9 +257,20 @@ export default function AnalyticsPage() {
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#181822',
-                    borderColor: '#2b2b3a',
+                    borderColor: '#3f3f46',
                     borderRadius: '8px',
-                    fontSize: '11px',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
+                  }}
+                  itemStyle={{
+                    color: '#ffffff',
+                    fontWeight: 500,
+                  }}
+                  labelStyle={{
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    marginBottom: '4px',
                   }}
                 />
                 <Line type="monotone" dataKey="decisions" stroke="#f4f4f5" strokeWidth={2} dot={{ r: 4 }} />
