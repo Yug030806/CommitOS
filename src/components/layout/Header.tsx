@@ -3,18 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   Bell,
-  Upload,
   AlertTriangle,
   CheckCircle2,
   ExternalLink,
-  Lock,
   LogOut,
   Menu,
 } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
 import { DecisionConflict, ExecutionRisk, TeamMember } from '@/lib/types';
-import { RBAC, ROLE_DEFINITIONS } from '@/lib/rbac';
-import UploadMeetingModal from '../meetings/UploadMeetingModal';
+import { ROLE_DEFINITIONS } from '@/lib/rbac';
 import Link from 'next/link';
 
 interface HeaderProps {
@@ -25,7 +22,6 @@ interface HeaderProps {
 }
 
 export default function Header({ title, subtitle, onToggleMobileMenu, isMobileNavOpen }: HeaderProps) {
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [conflicts, setConflicts] = useState<DecisionConflict[]>([]);
   const [risks, setRisks] = useState<ExecutionRisk[]>([]);
@@ -49,12 +45,10 @@ export default function Header({ title, subtitle, onToggleMobileMenu, isMobileNa
   };
 
   const totalAlerts = conflicts.length + (risks.some((r) => r.level === 'HIGH') ? 1 : 0);
-  const canUpload = RBAC.canUploadMeetings(currentUser.role);
   const roleDef = ROLE_DEFINITIONS[currentUser.role] || ROLE_DEFINITIONS.team_member;
 
   return (
-    <>
-      <header className="h-16 border-b border-[#1f1f27] bg-[#09090b]/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
+    <header className="h-16 border-b border-[#1f1f27] bg-[#09090b]/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           <button
             onClick={onToggleMobileMenu}
@@ -152,26 +146,6 @@ export default function Header({ title, subtitle, onToggleMobileMenu, isMobileNa
             )}
           </div>
 
-          {/* Primary CTA: Upload Meeting Button (Permission Aware) */}
-          {canUpload ? (
-            <button
-              onClick={() => setIsUploadOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-all shadow-md active:scale-95"
-            >
-              <Upload className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="hidden sm:inline">Upload Meeting</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setIsUploadOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 border border-zinc-700/60 text-xs transition-colors"
-              title="Upload requires Organization Admin or Team Leader privileges. Click to view permission requirements."
-            >
-              <Lock className="w-3 h-3 text-zinc-500" />
-              <span className="hidden sm:inline">Upload Meeting</span>
-            </button>
-          )}
-
           {/* Current User Name & Role Display */}
           <div className="hidden xs:flex sm:flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#14141a] border border-[#23232e]">
             <span className="text-xs font-semibold text-white truncate max-w-[80px] sm:max-w-[120px]">
@@ -193,9 +167,5 @@ export default function Header({ title, subtitle, onToggleMobileMenu, isMobileNa
           </button>
         </div>
       </header>
-
-      {/* Upload Meeting Modal */}
-      <UploadMeetingModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
-    </>
-  );
+    );
 }
