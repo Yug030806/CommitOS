@@ -88,8 +88,7 @@ export default function Sidebar() {
       name: 'Memory',
       href: '/memory',
       icon: BrainCircuit,
-      badge: 'RAG',
-      badgeColor: 'bg-zinc-800 text-zinc-400 border border-zinc-700',
+      badge: null,
     },
     {
       name: 'Analytics',
@@ -168,7 +167,7 @@ export default function Sidebar() {
                         <p className="truncate text-xs">{o.name}</p>
                         <p className="text-[10px] text-zinc-500 truncate">{o.members.length} members</p>
                       </div>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-white shrink-0" />}
                     </button>
                   );
                 })}
@@ -189,16 +188,16 @@ export default function Sidebar() {
 
         {/* Signature Conflict Notification Banner if any */}
         {pendingConflicts.length > 0 && (
-          <div className="mx-3 mt-3 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs flex items-start gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="mx-3 mt-3 p-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs flex items-start gap-2">
+            <ShieldAlert className="w-4 h-4 text-white shrink-0 mt-0.5" />
             <div className="min-w-0">
-              <p className="font-semibold text-amber-300 text-[11px]">Conflict Detected</p>
-              <p className="text-[10px] text-amber-200/70 truncate">Dec 15 vs Dec 20 date drift</p>
+              <p className="font-semibold text-white text-[11px]">Conflict Detected</p>
+              <p className="text-[10px] text-zinc-400 truncate">Dec 15 vs Dec 20 date drift</p>
               <Link
                 href="/meetings/meet-003"
-                className="text-[10px] text-amber-400 hover:text-amber-300 underline font-medium inline-block mt-0.5"
+                className="text-[10px] text-zinc-300 hover:text-white underline font-medium inline-block mt-0.5"
               >
-                Triage Now →
+                Review & Triage →
               </Link>
             </div>
           </div>

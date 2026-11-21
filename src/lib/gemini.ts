@@ -229,17 +229,17 @@ ${tasks.map((t) => `- ${t.title || 'Task'} (Assigned to: ${t.assigneeName || 'Un
   if (gemini) {
     try {
       const prompt = `
-You are CommitOS, an executive AI organizational memory assistant.
-Answer the user's question STRICTLY based on the provided organizational records.
-CRITICAL RULES:
-1. Always state the exact source meeting name and date when citing facts.
-2. If the information is not in the records, state clearly: "This information is not present in the organization's recorded meeting history."
-3. Do NOT fabricate numbers, dates, or names.
-4. Keep the answer direct, confident, and professional.
+You are CommitOS Assistant, a smart, friendly, and concise executive workspace assistant for SVIT Podcast Club.
+
+GUIDELINES:
+1. If the user sends a greeting (e.g. "hi", "hello", "how are you"), reply warmly and briefly explain you can help them find decisions, check tasks, or inspect meeting history.
+2. If the user asks casual or off-topic questions (e.g. "can I get tea?", "tell me a joke"), respond with light humor, clarify your role, and steer back to their workspace.
+3. When answering questions about meetings, budgets, tasks, or decisions, answer directly and concisely using the provided records. State the meeting title and date when relevant.
+4. Keep responses crisp, easy to read, and free of unnecessary technical jargon.
 
 QUESTION: ${question}
 
-RECORDS:
+WORKSPACE RECORDS:
 ${contextText}
 `;
       const model = gemini.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
@@ -259,12 +259,38 @@ ${contextText}
     }
   }
 
-  // Deterministic RAG Assistant
-  const lowerQ = question.toLowerCase();
+  // Deterministic friendly fallback
+  const lowerQ = question.toLowerCase().trim();
+
+  // Greetings & casual chat
+  if (/^(hi|hello|hey|greetings|good\s*(morning|afternoon|evening)|yo)(\s|!|\.|\?|$)/i.test(lowerQ)) {
+    return {
+      answer: "Hello! I'm your CommitOS workspace assistant. I can help you look up meeting decisions, check task deadlines, or answer questions about SVIT Podcast Club. What would you like to know?",
+      sources: [],
+      isLiveAI: false,
+    };
+  }
+
+  if (lowerQ.includes('tea') || lowerQ.includes('coffee') || lowerQ.includes('drink') || lowerQ.includes('food')) {
+    return {
+      answer: "I can't brew coffee or serve tea, but I can help keep your workspace organized! Ask me about your team's budget, meeting notes, or upcoming task deadlines.",
+      sources: [],
+      isLiveAI: false,
+    };
+  }
+
+  if (lowerQ.includes('who are you') || lowerQ.includes('what can you do') || lowerQ.includes('help')) {
+    return {
+      answer: "I'm CommitOS Assistant. You can ask me anything about your team's meetings, approved budgets, task assignments, or scheduling conflicts.",
+      sources: [],
+      isLiveAI: false,
+    };
+  }
+
   if (lowerQ.includes('budget') || lowerQ.includes('cost') || lowerQ.includes('money')) {
     return {
       answer:
-        'The officially approved event budget is ₹15,000, which was established and ratified during the Event Planning Meeting on November 15, 2026.',
+        'The approved event budget is ₹15,000, established during the Event Planning Meeting on November 15, 2026.',
       sources: [
         {
           meetingTitle: 'Event Planning Meeting',
@@ -279,7 +305,7 @@ ${contextText}
   if (lowerQ.includes('date') || lowerQ.includes('when')) {
     return {
       answer:
-        'The originally approved event date is December 15, 2026 (from the Event Planning Meeting on Nov 15). Note: A proposal to change the date to December 20 was raised by Yash in the Follow-up Meeting on Nov 28, but it remains a pending decision conflict awaiting ratification.',
+        'The official event date is December 15, 2026 (Event Planning Meeting, Nov 15). A proposed shift to December 20 was raised in Meeting 3 and is currently flagged as a conflict for review.',
       sources: [
         {
           meetingTitle: 'Event Planning Meeting',
@@ -299,7 +325,7 @@ ${contextText}
   if (lowerQ.includes('marketing') || lowerQ.includes('poster') || lowerQ.includes('rahul')) {
     return {
       answer:
-        'Rahul is responsible for marketing & digital campaigns, approved during the Event Planning Meeting on November 15. His current task is "Create event poster & social banners", due on December 5, 2026.',
+        'Rahul leads marketing and social campaigns. His active task is "Create event poster & social banners", due on December 5, 2026.',
       sources: [
         {
           meetingTitle: 'Event Planning Meeting',
@@ -314,7 +340,7 @@ ${contextText}
   if (lowerQ.includes('sponsor') || lowerQ.includes('yash')) {
     return {
       answer:
-        'Yash is responsible for corporate & local sponsorship acquisition. He is currently working on an urgent task to close an ₹8,000 corporate sponsorship MoU with an EdTech firm.',
+        'Yash is in charge of sponsorships. He is currently working on finalizing an ₹8,000 corporate sponsorship MoU with an EdTech firm.',
       sources: [
         {
           meetingTitle: 'Event Planning Meeting',
@@ -329,7 +355,7 @@ ${contextText}
   if (lowerQ.includes('risk') || lowerQ.includes('overdue')) {
     return {
       answer:
-        'CommitOS has detected a HIGH execution risk for the flagship event because event poster approval and sponsorship contracts are pending while the December 15 date approaches. Furthermore, the unresolved December 15 vs 20 date conflict creates execution gridlock.',
+        'There is an active high execution risk for the December 15 event due to pending poster approvals and the unresolved Dec 15 vs Dec 20 date conflict.',
       sources: [
         {
           meetingTitle: 'Follow-up Meeting',
@@ -342,12 +368,12 @@ ${contextText}
   }
 
   return {
-    answer: `Based on SVIT Podcast Club records, we have 3 documented meetings (Nov 15, Nov 22, and Nov 28) with 7 logged decisions and 6 tracked tasks across Yug, Rahul, Yash, and Priya. You can ask specifically about dates, budget, sponsorships, marketing, or risks.`,
+    answer: `Based on SVIT Podcast Club records, 3 meetings are logged with 7 decisions and 6 tracked tasks. You can ask me about event dates, budgets, task deadlines, or who is leading marketing and sponsorships.`,
     sources: [
       {
-        meetingTitle: 'Organizational Memory Vault',
+        meetingTitle: 'Memory Vault',
         date: 'Nov 2026',
-        snippet: 'Full records available across 3 meetings.',
+        snippet: 'Records across 3 meetings.',
       },
     ],
     isLiveAI: false,
