@@ -76,35 +76,35 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 selection:bg-white selection:text-black">
-      {/* 3D Organic Logo Background */}
+      {/* High-Visibility Logo Emblem in Background */}
       <AuthBackground />
 
-      {/* Main Glassmorphic Card Container with Reduced Opacity */}
+      {/* Main Ultra-Translucent Card (Background Emblem Clearly Visible Through It) */}
       <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-300">
-        <div className="rounded-3xl bg-black/25 backdrop-blur-md border border-white/10 p-8 sm:p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]">
+        <div className="rounded-3xl bg-black/15 backdrop-blur-[2px] border border-white/20 p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)]">
           {/* Brand Logo Header */}
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3">
               <img
                 src="/logo-white.png"
                 alt="CommitOS"
-                className="h-8 w-auto object-contain drop-shadow-[0_2px_12px_rgba(255,255,255,0.25)]"
+                className="h-8 w-auto object-contain drop-shadow-[0_2px_15px_rgba(255,255,255,0.3)]"
               />
             </div>
             <h1 className="text-2xl font-extrabold text-white tracking-tight">
               Sign In
             </h1>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+            <p className="text-xs sm:text-sm text-zinc-300 mt-1">
               Access your meetings, decisions &amp; tasks
             </p>
           </div>
 
-          {/* Role Portal Segmented Control (Translucent Glass Tabs - Low Opacity) */}
+          {/* Role Portal Segmented Control (Low Opacity Translucent Tabs) */}
           <div className="space-y-1.5 mb-5">
-            <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+            <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider block">
               Role Portal
             </label>
-            <div className="grid grid-cols-3 p-1 rounded-xl bg-black/20 backdrop-blur-sm border border-white/10">
+            <div className="grid grid-cols-3 p-1 rounded-xl bg-black/20 border border-white/15">
               {(['org_admin', 'team_leader', 'team_member'] as AppRole[]).map((r) => {
                 const isSelected = selectedRole === r;
                 const label = rolePresets[r].label;
@@ -115,8 +115,8 @@ export default function SignInPage() {
                     onClick={() => handleSelectRole(r)}
                     className={`py-2 text-xs rounded-lg transition-all text-center ${
                       isSelected
-                        ? 'bg-white/[0.08] text-white font-bold backdrop-blur-sm border border-white/20 shadow-[0_0_12px_rgba(255,255,255,0.06)]'
-                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent font-medium'
+                        ? 'bg-white/[0.14] text-white font-bold border border-white/30 shadow-[0_0_12px_rgba(255,255,255,0.08)]'
+                        : 'text-zinc-300 hover:text-white hover:bg-white/[0.04] border border-transparent font-medium'
                     }`}
                   >
                     {label}
@@ -129,7 +129,7 @@ export default function SignInPage() {
           {/* Credentials Form */}
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
-              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider mb-1.5 block">
                 Email Address
               </label>
               <input
@@ -138,12 +138,12 @@ export default function SignInPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 backdrop-blur-xs transition-all font-normal"
+                className="w-full px-4 py-3 rounded-xl bg-black/25 border border-white/15 text-sm text-white placeholder-zinc-400 focus:outline-none focus:border-white/40 transition-all font-normal"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider mb-1.5 block">
                 Password
               </label>
               <input
@@ -152,13 +152,13 @@ export default function SignInPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 backdrop-blur-xs transition-all font-normal font-mono"
+                className="w-full px-4 py-3 rounded-xl bg-black/25 border border-white/15 text-sm text-white placeholder-zinc-400 focus:outline-none focus:border-white/40 transition-all font-normal font-mono"
               />
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-black/30 border border-white/15 text-xs text-zinc-300 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-zinc-400" />
+              <div className="p-3 rounded-xl bg-black/40 border border-white/20 text-xs text-zinc-200 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-zinc-300" />
                 <span>{error}</span>
               </div>
             )}
@@ -166,7 +166,7 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] mt-6 disabled:opacity-50"
+              className="w-full py-3.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-all active:scale-[0.99] mt-6 disabled:opacity-50"
             >
               <span>{isLoading ? 'Signing In...' : 'Sign In'}</span>
               <ArrowRight className="w-4 h-4 stroke-[2.5]" />
@@ -175,7 +175,7 @@ export default function SignInPage() {
 
           {/* Footer Link */}
           <div className="text-center mt-6">
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-zinc-300">
               Don&apos;t have an account?{' '}
               <Link href="/signup" className="text-white font-bold hover:underline">
                 Sign Up
