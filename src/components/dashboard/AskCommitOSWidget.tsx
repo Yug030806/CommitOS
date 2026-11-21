@@ -103,7 +103,7 @@ export default function AskCommitOSWidget({ highlighted = true }: AskCommitOSWid
         id: `msg-err-${Date.now()}`,
         role: 'assistant',
         content:
-          'Approved budget is ₹15,000 (Nov 15), Rahul leads marketing, Yash leads sponsorships, and the Dec 15 event date is currently in conflict review with Dec 20.',
+          'Unable to reach CommitOS AI right now. Please verify your connection or try asking your question again.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages([...newHistory, fallbackMsg]);

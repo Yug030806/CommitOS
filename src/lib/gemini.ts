@@ -3,7 +3,10 @@ import { MeetingAnalysisResult, DecisionConflict } from './types';
 
 // Helper to get Gemini client with the configured API key
 export function getGeminiClient(apiKeyOverride?: string) {
-  const apiKey = apiKeyOverride || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+  const apiKey =
+    apiKeyOverride ||
+    process.env.GEMINI_API_KEY ||
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   if (!apiKey) return null;
   return new GoogleGenerativeAI(apiKey);
 }
@@ -241,13 +244,15 @@ ${tasks.map((t) => `- ${t.title || 'Task'} (Assigned to: ${t.assigneeName || 'Un
   if (gemini) {
     try {
       const prompt = `
-You are CommitOS Assistant, a smart, friendly, and concise executive workspace assistant for SVIT Podcast Club.
+You are CommitOS Assistant, the dedicated AI workspace memory intelligence for SVIT Podcast Club.
 
 GUIDELINES:
-1. If the user sends a greeting (e.g. "hi", "hello", "how are you"), reply warmly and briefly explain you can help them find decisions, check tasks, or inspect meeting history.
-2. If the user asks casual or off-topic questions (e.g. "can I get tea?", "tell me a joke"), respond with light humor, clarify your role, and steer back to their workspace.
-3. When answering questions about meetings, budgets, tasks, or decisions, answer directly and concisely using the provided records. State the meeting title and date when relevant.
-4. Keep responses crisp, easy to read, and free of unnecessary technical jargon.
+1. GREETINGS: If the user sends a greeting (e.g. "hi", "hello", "hey"), reply warmly and state that you can help look up past decisions, tasks, budgets, and meeting notes.
+2. ANSWER DIRECTLY: Answer questions about SVIT Podcast Club meetings, approved budgets, event dates, task ownership, equipment, sponsors, and decisions directly and accurately using the provided WORKSPACE RECORDS. Mention dates and assignees when relevant.
+3. INVALID / OUT-OF-SCOPE QUESTIONS: If the user asks an irrelevant, nonsensical, or out-of-scope question that is not related to SVIT Podcast Club workspace, meetings, tasks, team members, or approved decisions (e.g. general trivia, recipes, web queries, or gibberish), DO NOT make up an answer. Instead, explicitly state:
+"Invalid question: This query is outside the scope of SVIT Podcast Club records. Please ask about our meetings, decisions, approved budgets, task deadlines, or team responsibilities."
+4. NO RECORD FOUND: If the question is about the club or workspace but the specific information does not exist in the records, reply:
+"No record found: I could not find any logged decisions or tasks regarding that topic in our club's history."
 
 QUESTION: ${question}
 
@@ -255,7 +260,10 @@ WORKSPACE RECORDS:
 ${contextText}
 `;
       const model = gemini.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
-      const resp = await model.generateContent(prompt);
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Gemini API timeout')), 8000)
+      );
+      const resp = await Promise.race([model.generateContent(prompt), timeoutPromise]);
       const answer = resp.response.text();
 
       // Find sources mentioned
@@ -274,7 +282,7 @@ ${contextText}
   // Deterministic friendly fallback for offline / fallback mode
   if (lowerQ.includes('tea') || lowerQ.includes('coffee') || lowerQ.includes('drink') || lowerQ.includes('food')) {
     return {
-      answer: "I can't brew coffee or serve tea, but I can help keep your workspace organized! Ask me about your team's budget, meeting notes, or upcoming task deadlines.",
+      answer: "Invalid question: I am the SVIT Podcast Club organizational assistant. I can only assist with our meetings, approved decisions, budgets, task deadlines, and team responsibilities.",
       sources: [],
       isLiveAI: false,
     };
@@ -288,7 +296,7 @@ ${contextText}
     };
   }
 
-  if (lowerQ.includes('budget') || lowerQ.includes('cost') || lowerQ.includes('money')) {
+  if (lowerQ.includes('budget') || lowerQ.includes('cost') || lowerQ.includes('money') || lowerQ.includes('fund') || lowerQ.includes('₹')) {
     return {
       answer:
         'The approved event budget is ₹15,000, established during the Event Planning Meeting on November 15, 2026.',
@@ -303,7 +311,7 @@ ${contextText}
     };
   }
 
-  if (lowerQ.includes('date') || lowerQ.includes('when')) {
+  if (lowerQ.includes('date') || lowerQ.includes('when') || lowerQ.includes('schedule') || lowerQ.includes('calendar') || lowerQ.includes('dec 15') || lowerQ.includes('dec 20')) {
     return {
       answer:
         'The official event date is December 15, 2026 (Event Planning Meeting, Nov 15). A proposed shift to December 20 was raised in Meeting 3 and is currently flagged as a conflict for review.',
@@ -323,7 +331,7 @@ ${contextText}
     };
   }
 
-  if (lowerQ.includes('marketing') || lowerQ.includes('poster') || lowerQ.includes('rahul')) {
+  if (lowerQ.includes('marketing') || lowerQ.includes('poster') || lowerQ.includes('banner') || lowerQ.includes('social') || lowerQ.includes('rahul') || lowerQ.includes('flyer')) {
     return {
       answer:
         'Rahul leads marketing and social campaigns. His active task is "Create event poster & social banners", due on December 5, 2026.',
@@ -338,7 +346,7 @@ ${contextText}
     };
   }
 
-  if (lowerQ.includes('sponsor') || lowerQ.includes('yash')) {
+  if (lowerQ.includes('sponsor') || lowerQ.includes('yash') || lowerQ.includes('edtech') || lowerQ.includes('mou')) {
     return {
       answer:
         'Yash is in charge of sponsorships. He is currently working on finalizing an ₹8,000 corporate sponsorship MoU with an EdTech firm.',
@@ -353,7 +361,7 @@ ${contextText}
     };
   }
 
-  if (lowerQ.includes('risk') || lowerQ.includes('overdue')) {
+  if (lowerQ.includes('risk') || lowerQ.includes('overdue') || lowerQ.includes('warning') || lowerQ.includes('blocker')) {
     return {
       answer:
         'There is an active high execution risk for the December 15 event due to pending poster approvals and the unresolved Dec 15 vs Dec 20 date conflict.',
@@ -368,15 +376,111 @@ ${contextText}
     };
   }
 
+  if (lowerQ.includes('venue') || lowerQ.includes('auditorium') || lowerQ.includes('hall') || lowerQ.includes('location')) {
+    return {
+      answer:
+        'The approved venue is the SVIT Main Auditorium. Priya is responsible for verifying date availability and securing administrative booking confirmation.',
+      sources: [
+        {
+          meetingTitle: 'Event Planning Meeting',
+          date: 'Nov 15, 2026',
+          snippet: 'Venue Selection: SVIT Main Auditorium approved.',
+        },
+      ],
+      isLiveAI: false,
+    };
+  }
+
+  if (lowerQ.includes('audio') || lowerQ.includes('mixer') || lowerQ.includes('sound') || lowerQ.includes('camera') || lowerQ.includes('equipment') || lowerQ.includes('yug') || lowerQ.includes('production')) {
+    return {
+      answer:
+        'Yug leads production and technical setup. Active commitments include reserving the campus 12-channel audio mixer and camera equipment for the flagship event.',
+      sources: [
+        {
+          meetingTitle: 'Production Discussion',
+          date: 'Nov 22, 2026',
+          snippet: 'Audio & Visual Setup: 12-channel mixer and multi-camera recording locked.',
+        },
+      ],
+      isLiveAI: false,
+    };
+  }
+
+  if (lowerQ.includes('priya') || lowerQ.includes('coordinator')) {
+    return {
+      answer:
+        'Priya is the Event Coordinator. Her active tasks include verifying auditorium availability (due Dec 3) and guest registration logistics.',
+      sources: [
+        {
+          meetingTitle: 'Event Planning Meeting',
+          date: 'Nov 15, 2026',
+          snippet: 'Coordination & Logistics assigned to Priya.',
+        },
+      ],
+      isLiveAI: false,
+    };
+  }
+
+  if (lowerQ.includes('conflict') || lowerQ.includes('contradiction') || lowerQ.includes('triage')) {
+    return {
+      answer:
+        'There is an active decision conflict detected: Meeting 3 proposed shifting the flagship event to December 20, contradicting the approved December 15 date from Meeting 1.',
+      sources: [
+        {
+          meetingTitle: 'Follow-up Meeting',
+          date: 'Nov 28, 2026',
+          snippet: 'Conflict Detected: Dec 15 vs Dec 20 date drift.',
+        },
+      ],
+      isLiveAI: false,
+    };
+  }
+
+  // Dynamic search across provided memories, decisions, and tasks
+  const words = lowerQ.split(/[\s,?.!]+/).filter((w) => w.length > 3);
+  if (words.length > 0) {
+    const matchedDecisions = decisions.filter((d) => {
+      const text = `${d.title} ${d.value} ${d.meetingTitle}`.toLowerCase();
+      return words.some((w) => text.includes(w));
+    });
+
+    const matchedTasks = tasks.filter((t) => {
+      const text = `${t.title} ${t.assigneeName} ${t.deadline}`.toLowerCase();
+      return words.some((w) => text.includes(w));
+    });
+
+    const matchedMemories = memories.filter((m) => {
+      const text = `${m.content} ${m.meetingTitle} ${m.date}`.toLowerCase();
+      return words.some((w) => text.includes(w));
+    });
+
+    if (matchedDecisions.length > 0 || matchedTasks.length > 0 || matchedMemories.length > 0) {
+      const items: string[] = [];
+      if (matchedDecisions.length > 0) {
+        items.push(`Decisions: ${matchedDecisions.map((d) => `${d.title} (${d.value})`).join('; ')}`);
+      }
+      if (matchedTasks.length > 0) {
+        items.push(`Tasks: ${matchedTasks.map((t) => `${t.title} [Assignee: ${t.assigneeName}, Due: ${t.deadline}]`).join('; ')}`);
+      }
+      if (matchedMemories.length > 0 && items.length === 0) {
+        items.push(matchedMemories[0].content);
+      }
+      return {
+        answer: items.join('\n\n'),
+        sources: matchedMemories.slice(0, 2).map((m) => ({
+          meetingTitle: m.meetingTitle,
+          date: m.date,
+          snippet: m.content,
+        })),
+        isLiveAI: false,
+      };
+    }
+  }
+
   return {
-    answer: `Based on SVIT Podcast Club records, 3 meetings are logged with 7 decisions and 6 tracked tasks. You can ask me about event dates, budgets, task deadlines, or who is leading marketing and sponsorships.`,
-    sources: [
-      {
-        meetingTitle: 'Memory Vault',
-        date: 'Nov 2026',
-        snippet: 'Records across 3 meetings.',
-      },
-    ],
+    answer:
+      "Invalid question: I couldn't find any organizational record matching your query in the SVIT Podcast Club memory. Please ask about our meetings, decisions, approved budgets, task deadlines, or team responsibilities.",
+    sources: [],
     isLiveAI: false,
   };
 }
