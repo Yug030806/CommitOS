@@ -39,7 +39,10 @@ function SettingsContent() {
 
   // Settings state
   const [settings, setSettings] = useState<AppSettings>(() => CommitOSStore.getSettings());
-  const [showGeminiKey, setShowGeminiKey] = useState(false);
+  const [isEditingGeminiKey, setIsEditingGeminiKey] = useState(false);
+  const [isEditingSupabaseKey, setIsEditingSupabaseKey] = useState(false);
+  const [isEditingDeepgramKey, setIsEditingDeepgramKey] = useState(false);
+  const [isEditingAssemblyKey, setIsEditingAssemblyKey] = useState(false);
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [isSaved, setIsSaved] = useState(false);
@@ -592,13 +595,22 @@ function SettingsContent() {
       {activeTab === 'general' && (
         <form onSubmit={handleSaveSettings} className="space-y-8">
           {!canManageOrg && (
-            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
-              <Lock className="w-4 h-4 shrink-0" />
-              <span>Read-only view. Only Organization Admins can modify global AI credentials and organization profiles.</span>
+            <div className="p-4 rounded-xl bg-[#14141d] border border-amber-500/20 flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 shrink-0">
+                <Lock className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                  API Credentials Concealed (RBAC Protection)
+                </h4>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  All organizational credentials (Gemini, Supabase, Audio Transcription) are strictly hidden and confidential. Only users with the <strong className="text-rose-300">Organization Admin</strong> role can view credential statuses or update API keys.
+                </p>
+              </div>
             </div>
           )}
 
-          {/* AI Reasoning & API Keys */}
+          {/* AI Reasoning & API Keys (Strictly Masked & Hidden) */}
           <div className="p-6 rounded-2xl bg-[#121217] border border-[#23232f] space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-[#1f1f28]">
               <div className="flex items-center gap-2.5">
@@ -608,7 +620,7 @@ function SettingsContent() {
                 <div>
                   <h3 className="text-sm font-semibold text-white">AI Engine & API Credentials</h3>
                   <p className="text-xs text-zinc-400">
-                    Google Gemini integration for Meeting Intelligence, Conflict Detection & RAG
+                    Google Gemini API credentials are protected and masked from plain-text exposure
                   </p>
                 </div>
               </div>
@@ -616,62 +628,115 @@ function SettingsContent() {
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#181822] border border-[#262635] text-[11px] font-mono">
                 <span className={`w-2 h-2 rounded-full ${settings.geminiApiKey ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                 <span className="text-zinc-300">
-                  {settings.geminiApiKey ? 'Live AI Key Loaded' : 'Demo Mode (Simulation)'}
+                  {settings.geminiApiKey ? 'API Key Active (Concealed)' : 'Simulation Mode'}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-zinc-300">Google Gemini API Key</label>
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1"
-                  >
-                    <span>Get Key from Google AI Studio</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-
-                <div className="relative">
-                  <input
-                    type={showGeminiKey ? 'text' : 'password'}
-                    placeholder="AIzaSy..."
-                    disabled={!canManageOrg}
-                    value={settings.geminiApiKey}
-                    onChange={(e) => setSettings({ ...settings, geminiApiKey: e.target.value })}
-                    className="w-full pl-3 pr-20 py-2 rounded-lg bg-[#16161d] border border-[#272736] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400 font-mono disabled:opacity-60"
-                  />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowGeminiKey(!showGeminiKey)}
-                      className="p-1 text-zinc-400 hover:text-zinc-200"
+            {canManageOrg ? (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-medium text-zinc-300 flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>Google Gemini API Key</span>
+                    </label>
+                    <a
+                      href="https://aistudio.google.com/app/apikey"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1"
                     >
-                      {showGeminiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleTestGeminiKey}
-                      disabled={isTestingKey}
-                      className="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] text-zinc-300 font-medium border border-zinc-700 transition-colors"
-                    >
-                      {isTestingKey ? 'Testing...' : 'Test'}
-                    </button>
+                      <span>Get Key from Google AI Studio</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
-                </div>
 
-                {testResult && (
-                  <div className={`mt-2 p-2.5 rounded-lg text-xs flex items-center gap-2 ${testResult.success ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-300 border border-rose-500/20'}`}>
-                    {testResult.success ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />}
-                    <span>{testResult.message}</span>
-                  </div>
-                )}
+                  {settings.geminiApiKey && !isEditingGeminiKey ? (
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[#16161e] border border-[#272736]">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+                          <ShieldCheck className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs tracking-widest text-zinc-200">
+                              ••••••••••••••••••••••••••••••••
+                            </span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 shrink-0">
+                              Active & Concealed
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-zinc-500 mt-0.5">
+                            Key is active in session. Raw key is securely hidden to prevent shoulder-surfing.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={handleTestGeminiKey}
+                          disabled={isTestingKey}
+                          className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-200 border border-zinc-700 transition-colors"
+                        >
+                          {isTestingKey ? 'Testing...' : 'Test Connection'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingGeminiKey(true)}
+                          className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 hover:text-white border border-zinc-700 transition-colors"
+                        >
+                          Replace Key
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="password"
+                        placeholder="Paste new Gemini API Key (starts with AIzaSy...)"
+                        autoComplete="new-password"
+                        value={settings.geminiApiKey}
+                        onChange={(e) => setSettings({ ...settings, geminiApiKey: e.target.value })}
+                        className="w-full pl-3 pr-28 py-2 rounded-lg bg-[#16161d] border border-[#272736] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400 font-mono"
+                      />
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        {isEditingGeminiKey && (
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingGeminiKey(false)}
+                            className="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] text-zinc-300 font-medium border border-zinc-700 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleTestGeminiKey}
+                          disabled={isTestingKey || !settings.geminiApiKey}
+                          className="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] text-zinc-300 font-medium border border-zinc-700 transition-colors disabled:opacity-50"
+                        >
+                          {isTestingKey ? 'Testing...' : 'Test'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {testResult && (
+                    <div className={`mt-2 p-2.5 rounded-lg text-xs flex items-center gap-2 ${testResult.success ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-300 border border-rose-500/20'}`}>
+                      {testResult.success ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />}
+                      <span>{testResult.message}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-3 rounded-lg bg-[#15151c] border border-zinc-800 text-xs text-zinc-400 flex items-center gap-2">
+                <Lock className="w-4 h-4 text-zinc-500" />
+                <span>API credential management is restricted to Organization Administrators.</span>
+              </div>
+            )}
           </div>
 
           {/* Organization Profile Details */}
@@ -706,7 +771,7 @@ function SettingsContent() {
             </div>
           </div>
 
-          {/* Supabase Connection */}
+          {/* Supabase Connection (Fully Masked Credentials) */}
           <div className="p-6 rounded-2xl bg-[#121217] border border-[#23232f] space-y-4">
             <div className="flex items-center gap-2.5 pb-3 border-b border-[#1f1f28]">
               <Database className="w-4 h-4 text-white" />
@@ -716,31 +781,134 @@ function SettingsContent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">Supabase Project URL</label>
-                <input
-                  type="text"
-                  placeholder="https://your-project.supabase.co"
-                  disabled={!canManageOrg}
-                  value={settings.supabaseUrl || ''}
-                  onChange={(e) => setSettings({ ...settings, supabaseUrl: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-[#16161d] border border-[#272736] text-xs text-white placeholder-zinc-500 focus:outline-none font-mono disabled:opacity-60"
-                />
+            {canManageOrg ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1">Supabase Project URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://your-project.supabase.co"
+                    value={settings.supabaseUrl || ''}
+                    onChange={(e) => setSettings({ ...settings, supabaseUrl: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-[#16161d] border border-[#272736] text-xs text-white placeholder-zinc-500 focus:outline-none font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1">Supabase Anon Key</label>
+                  {settings.supabaseAnonKey && !isEditingSupabaseKey ? (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-[#16161e] border border-[#272736]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span className="font-mono text-xs tracking-widest text-zinc-300 truncate">
+                          ••••••••••••••••••••••••
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 shrink-0">
+                          Hidden
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingSupabaseKey(true)}
+                        className="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-300 hover:text-white border border-zinc-700 shrink-0"
+                      >
+                        Replace
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="password"
+                        placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+                        autoComplete="new-password"
+                        value={settings.supabaseAnonKey || ''}
+                        onChange={(e) => setSettings({ ...settings, supabaseAnonKey: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg bg-[#16161d] border border-[#272736] text-xs text-white placeholder-zinc-500 focus:outline-none font-mono"
+                      />
+                      {isEditingSupabaseKey && (
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingSupabaseKey(false)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">Supabase Anon Key</label>
-                <input
-                  type="password"
-                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..."
-                  disabled={!canManageOrg}
-                  value={settings.supabaseAnonKey || ''}
-                  onChange={(e) => setSettings({ ...settings, supabaseAnonKey: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-[#16161d] border border-[#272736] text-xs text-white placeholder-zinc-500 focus:outline-none font-mono disabled:opacity-60"
-                />
+            ) : (
+              <div className="p-3 rounded-lg bg-[#15151c] border border-zinc-800 text-xs text-zinc-400 flex items-center gap-2">
+                <Lock className="w-4 h-4 text-zinc-500" />
+                <span>Supabase credentials are concealed from non-admin accounts.</span>
+              </div>
+            )}
+          </div>
+
+          {/* Optional Audio Transcription Providers (Masked) */}
+          {canManageOrg && (
+            <div className="p-6 rounded-2xl bg-[#121217] border border-[#23232f] space-y-4">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-[#1f1f28]">
+                <Radio className="w-4 h-4 text-white" />
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Audio Transcription Keys (Optional)</h3>
+                  <p className="text-xs text-zinc-400">Deepgram or AssemblyAI keys for speech-to-text (Gemini Audio used by default)</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1">Deepgram API Key</label>
+                  {settings.deepgramApiKey && !isEditingDeepgramKey ? (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-[#16161e] border border-[#272736]">
+                      <span className="font-mono text-xs tracking-widest text-zinc-300">••••••••••••••••</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingDeepgramKey(true)}
+                        className="px-2 py-0.5 rounded bg-zinc-800 text-[11px] text-zinc-300 hover:text-white border border-zinc-700"
+                      >
+                        Replace
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="password"
+                      placeholder="Optional Deepgram API Key..."
+                      autoComplete="new-password"
+                      value={settings.deepgramApiKey || ''}
+                      onChange={(e) => setSettings({ ...settings, deepgramApiKey: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg bg-[#16161d] border border-[#272736] text-xs text-white placeholder-zinc-500 focus:outline-none font-mono"
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1">AssemblyAI API Key</label>
+                  {settings.assemblyAiApiKey && !isEditingAssemblyKey ? (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-[#16161e] border border-[#272736]">
+                      <span className="font-mono text-xs tracking-widest text-zinc-300">••••••••••••••••</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingAssemblyKey(true)}
+                        className="px-2 py-0.5 rounded bg-zinc-800 text-[11px] text-zinc-300 hover:text-white border border-zinc-700"
+                      >
+                        Replace
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="password"
+                      placeholder="Optional AssemblyAI API Key..."
+                      autoComplete="new-password"
+                      value={settings.assemblyAiApiKey || ''}
+                      onChange={(e) => setSettings({ ...settings, assemblyAiApiKey: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg bg-[#16161d] border border-[#272736] text-xs text-white placeholder-zinc-500 focus:outline-none font-mono"
+                    />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Action Controls */}
           {canManageOrg && (
