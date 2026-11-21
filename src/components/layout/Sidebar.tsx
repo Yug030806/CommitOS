@@ -246,7 +246,7 @@ export default function Sidebar() {
             <span className={`w-2 h-2 rounded-full ${isLiveAI ? 'bg-emerald-400 animate-ping' : 'bg-emerald-400'}`} />
             <span className="text-zinc-300 font-medium">{isLiveAI ? 'Gemini Live AI' : 'Live Engine Ready'}</span>
           </div>
-          <Link href="/settings" className="text-zinc-500 hover:text-zinc-300" title="Settings & Engine Config">
+          <Link href="/settings" className="text-zinc-500 hover:text-zinc-300" title="Settings & Team Roster">
             <Radio className="w-3 h-3" />
           </Link>
         </div>
