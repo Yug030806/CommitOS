@@ -9,7 +9,6 @@ import {
   Database,
   Users,
   Building,
-  RotateCcw,
   CheckCircle2,
   AlertCircle,
   Eye,
@@ -125,7 +124,7 @@ function SettingsContent() {
           success: false,
           message: settings.geminiApiKey
             ? 'API key was not accepted by Google Gemini. Check key validity.'
-            : 'No Gemini API key provided. CommitOS is currently in Offline Demo Memory Mode.',
+            : 'No Gemini API key provided. Please configure your GEMINI_API_KEY.',
         });
       }
     } catch (err: any) {
@@ -273,14 +272,6 @@ function SettingsContent() {
       CommitOSStore.removeMember(member.id);
     } catch (err: any) {
       alert(`Error: ${err.message}`);
-    }
-  };
-
-  const handleResetDemo = () => {
-    if (confirm('Reset all organization records and roles to clean demo state?')) {
-      CommitOSStore.resetToDemo();
-      alert('Records restored successfully.');
-      window.location.reload();
     }
   };
 
@@ -912,30 +903,19 @@ function SettingsContent() {
 
           {/* Action Controls */}
           {canManageOrg && (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2">
+              {isSaved && (
+                <span className="text-xs text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Configuration Saved
+                </span>
+              )}
               <button
-                type="button"
-                onClick={handleResetDemo}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#16161d] hover:bg-[#1f1f27] border border-[#262633] text-xs text-zinc-300 hover:text-white transition-colors"
+                type="submit"
+                className="px-5 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors shadow-md"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Demo State</span>
+                Save Configuration
               </button>
-
-              <div className="flex items-center gap-3">
-                {isSaved && (
-                  <span className="text-xs text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Configuration Saved
-                  </span>
-                )}
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors shadow-md"
-                >
-                  Save Configuration
-                </button>
-              </div>
             </div>
           )}
         </form>

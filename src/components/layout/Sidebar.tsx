@@ -18,6 +18,7 @@ import {
   Building,
   Check,
   Users,
+  LogOut,
 } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
 import { Organization, DecisionConflict, ExecutionRisk, TeamMember } from '@/lib/types';
@@ -242,16 +243,16 @@ export default function Sidebar() {
         {/* Live Engine Indicator */}
         <div className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#121217] border border-[#21212a] text-[11px]">
           <div className="flex items-center gap-1.5">
-            <span className={`w-2 h-2 rounded-full ${isLiveAI ? 'bg-emerald-400 animate-ping' : 'bg-zinc-500'}`} />
-            <span className="text-zinc-400">{isLiveAI ? 'Gemini 1.5 Live' : 'Demo Memory Mode'}</span>
+            <span className={`w-2 h-2 rounded-full ${isLiveAI ? 'bg-emerald-400 animate-ping' : 'bg-emerald-400'}`} />
+            <span className="text-zinc-300 font-medium">{isLiveAI ? 'Gemini Live AI' : 'Live Engine Ready'}</span>
           </div>
-          <Link href="/settings" className="text-zinc-500 hover:text-zinc-300">
+          <Link href="/settings" className="text-zinc-500 hover:text-zinc-300" title="Settings & Engine Config">
             <Radio className="w-3 h-3" />
           </Link>
         </div>
 
-        {/* User Identity Card with Role Badge */}
-        <div className="flex items-center gap-2.5 p-2 rounded-lg bg-[#14141a] border border-[#22222d]">
+        {/* User Identity Card with Role Badge & Sign Out */}
+        <div className="flex items-center gap-2 p-2 rounded-lg bg-[#14141a] border border-[#22222d]">
           <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-800 border border-zinc-700 shrink-0 flex items-center justify-center text-xs font-bold text-white">
             {currentUser.avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -269,6 +270,16 @@ export default function Sidebar() {
             </div>
             <p className="text-[10px] text-zinc-400 truncate">{currentUser.title}</p>
           </div>
+          <button
+            onClick={() => {
+              CommitOSStore.logout();
+              window.location.href = '/signin';
+            }}
+            className="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+            title="Sign Out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </aside>

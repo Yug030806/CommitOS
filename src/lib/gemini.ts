@@ -52,14 +52,15 @@ CRITICAL INSTRUCTIONS:
 export async function analyzeMeetingWithGemini(
   transcript: string,
   apiKey?: string,
-  modelName = 'gemini-1.5-flash'
+  modelName = 'gemini-3.5-flash-lite'
 ): Promise<{ result: MeetingAnalysisResult; isLiveAI: boolean }> {
   const gemini = getGeminiClient(apiKey);
 
   if (gemini) {
     try {
+      const activeModel = modelName === 'gemini-1.5-flash' ? 'gemini-3.5-flash-lite' : modelName;
       const model = gemini.getGenerativeModel({
-        model: modelName,
+        model: activeModel,
         systemInstruction: SYSTEM_PROMPT_MEETING_INTELLIGENCE,
         generationConfig: {
           responseMimeType: 'application/json',
@@ -120,7 +121,7 @@ If there are no conflicts, return []. Return ONLY raw JSON.
 `;
 
       const model = gemini.getGenerativeModel({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-3.5-flash-lite',
         generationConfig: { responseMimeType: 'application/json' },
       });
 
@@ -216,13 +217,13 @@ export async function askCommitOSRAG(
 
   const contextText = `
 ORGANIZATIONAL DECISIONS:
-${decisions.map((d) => `- [${d.meetingTitle} (${d.decidedAt.split('T')[0]})] ${d.title}: ${d.value}`).join('\n')}
+${decisions.map((d) => `- [${d.meetingTitle || 'Meeting'} (${d.decidedAt ? d.decidedAt.split('T')[0] : 'Recorded'})] ${d.title}: ${d.value}`).join('\n')}
 
 ORGANIZATIONAL MEMORIES:
-${memories.map((m) => `- [${m.meetingTitle} (${m.date})] ${m.content}`).join('\n')}
+${memories.map((m) => `- [${m.meetingTitle || 'Historical'} (${m.date || 'Recent'})] ${m.content}`).join('\n')}
 
 CURRENT TASKS:
-${tasks.map((t) => `- ${t.title} (Assigned to: ${t.assigneeName}, Due: ${t.deadline}, Status: ${t.status})`).join('\n')}
+${tasks.map((t) => `- ${t.title || 'Task'} (Assigned to: ${t.assigneeName || 'Unassigned'}, Due: ${t.deadline || 'Pending'}, Status: ${t.status || 'Active'})`).join('\n')}
 `;
 
   if (gemini) {
@@ -241,7 +242,7 @@ QUESTION: ${question}
 RECORDS:
 ${contextText}
 `;
-      const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = gemini.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
       const resp = await model.generateContent(prompt);
       const answer = resp.response.text();
 

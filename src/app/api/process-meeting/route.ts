@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       date = new Date().toISOString(),
       historicalDecisions = [],
       apiKey,
-      model = 'gemini-1.5-flash',
+      model = 'gemini-3.5-flash-lite',
       actorRole,
       organizationId = 'org-svit-podcast',
     } = body as {
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     // Step 4: Agent 4 - Task Generation
     const tasks: Task[] = analysis.action_items.map((item, index) => ({
       id: `task-${Date.now()}-${index}`,
-      organizationId: 'org-svit-podcast',
+      organizationId,
       meetingId,
       meetingTitle,
       title: item.task,

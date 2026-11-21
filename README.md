@@ -1,170 +1,208 @@
-# CommitOS – AI Decision & Execution Intelligence
+# CommitOS – Agentic Decision & Execution Intelligence OS
 
 > **Tagline**: *Your Meetings. Now, Executed.*
 > 
-> CommitOS is an autonomous, agentic meeting-to-execution platform that solves the universal organizational problem of decisions, commitments, and deadlines getting lost between meetings. Built for college clubs, startup teams, student committees, and project squads.
+> **CommitOS** is an autonomous, agentic meeting-to-execution platform featuring multi-tenant **Role-Based Access Control (RBAC)**, persistent organizational memory (RAG), real-time cross-meeting decision conflict detection, and live **Google Gemini AI** orchestration. Built for startups, college clubs, student committees, and high-velocity engineering squads.
+
+[![Next.js](https://img.shields.io/badge/Next.js-15.1.7-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-8E75B2?style=flat-square&logo=google)](https://aistudio.google.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v3-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-emerald?style=flat-square)](LICENSE)
 
 ---
 
-## 🌟 The Core Problem CommitOS Solves
+## 🌟 The Problem CommitOS Solves
 
-In most organizations, meetings generate enthusiasm, promises, and ideas. But immediately afterward:
-- **Decision Drift**: Important agreements are remembered differently or contradicted in subsequent meetings.
-- **Lost Commitments**: Action items discussed verbally are forgotten without ownership or deadlines.
-- **Organizational Amnesia**: Nobody remembers what was approved three meetings ago regarding budgets, dates, or vendor selections.
-- **Unseen Execution Risks**: Critical path dependencies fail silently until days before the milestone.
+In fast-paced organizations, meetings generate energy, promises, and strategic choices. Yet immediately afterward:
+- **Decision Drift**: Agreed dates, budgets, or scopes are remembered differently and contradicted in later meetings.
+- **Lost Commitments**: Spoken action items dissolve without accountability, assigned owners, or deadlines.
+- **Organizational Amnesia**: Teams forget what was approved three weeks ago regarding vendors, budget limits, or architectural choices.
+- **Silent Execution Risks**: Dependency failures and deadline collisions stay hidden until days before launch.
 
-CommitOS does **not** build another generic chatbot summary. Instead, it operates as an active **Execution Operating System** with long-term memory, cross-meeting contradiction detection, and predictive risk tracking.
-
----
-
-## 🚀 Key Differentiating Features
-
-### 1. Persistent Organizational Memory (Vectorized RAG)
-Every confirmed decision, budget cap, format selection, and responsibility is preserved across time in a dedicated organizational memory vault. When members or leaders ask questions, CommitOS cites the exact meeting name, date, and decision identifier.
-
-### 2. Signature Feature: Cross-Meeting Decision Conflict Detection
-When a new meeting is processed, CommitOS compares newly proposed or discussed items against historical organizational memory.
-* **Example**: In Meeting 1, the event date was approved for **December 15**. In Meeting 3, a member casually suggests moving it to **December 20**.
-* **CommitOS triggers a Decision Conflict Alert**:
-  - Highlights the contradiction (Dec 15 approved vs Dec 20 proposed)
-  - Identifies the blast radius impact (venue booking, poster deadlines, sponsor contract terms)
-  - Enforces a Human-in-the-Loop Triage Workflow: **`Approve Change`**, **`Reject Change`**, or **`Request Discussion`**.
-  - Maintains an immutable decision audit log.
-
-### 3. Predictive Execution Risk Analysis
-Analyzes pending tasks, approaching milestones, unratified conflicts, and team workloads to compute an overall risk level (**LOW**, **MEDIUM**, **HIGH**) with causal explanations and recommended mitigations.
-
-### 4. Interactive Task & Kanban Engine
-Automatically extracts action items with assigned owners, deadlines, and priorities, mapping them directly to the originating meeting and decision.
-
-### 5. Ask CommitOS: Grounded RAG Assistant
-Natural language question-answering over organizational history with zero hallucinations and verified source grounding.
+**CommitOS transforms passive conversations into an active, verifiable execution system.** It does not merely summarize transcripts; it analyzes blast radius, detects contradictions across time, enforces role permissions, and tracks tasks to completion.
 
 ---
 
-## 🏗️ Multi-Agent Architecture
+## 🛡️ Role-Based Access Control (RBAC) Architecture
 
-CommitOS coordinates five specialized agents sharing an organization-scoped memory store:
+CommitOS enforces strict three-tier organizational governance both on the client and with server-side validation. AI agents and user actions cannot bypass permissions.
 
 ```
-Audio Recording / Transcript
-           │
-           ▼
-[ Meeting Intelligence Agent ]
-   ├── Transcribes & diarizes speakers
-   ├── Separates approved decisions vs proposals vs disagreements
-   └── Extracts action items with owners and deadlines
-           │
-           ├────────────────────────────┐
-           ▼                            ▼
-[ Organizational Memory Agent ]   [ AI Execution Agent ]
-   ├── Embeds decisions into vector store   ├── Generates Kanban tasks
-   └── Manages cross-meeting retrieval    └── Tracks status & due dates
-           │                                    │
-           ▼                                    ▼
-[ Conflict Detection Agent ]       [ Execution Risk Predictor ]
-   ├── Compares new vs historical       ├── Evaluates milestone blockers
-   └── Generates blast radius diff     └── Alerts on pending dependencies
+┌─────────────────────────────────────────────────────────────────┐
+│                      ORGANIZATION ADMIN                         │
+│  Full Access • Member & Role Management • Decision Ratification │
+└───────────────────────────────┬─────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         TEAM LEADER                             │
+│  Upload Meetings • Review AI Insights • Assign Tasks & Monitor  │
+└───────────────────────────────┬─────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         TEAM MEMBER                             │
+│  View Permitted Meetings • Update Task Status • Query RAG Memory│
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 1. 👑 Organization Admin
+* **Full Organization Access**: Read and write access to all organizational resources, analytics, and audit logs.
+* **Team Governance**: Invite new members, modify member roles, or revoke access on the Team Management portal.
+* **Decision Ratification**: Exclusively approve or reject official decision modifications and conflict triage.
+* **Workspace Settings**: Manage organization profile, API keys (safely masked), and global configurations.
+
+### 2. ⚡ Team Leader
+* **Meeting Operations**: Upload audio recordings and paste transcripts for AI pipeline processing.
+* **AI Intelligence Review**: Review AI-generated summaries, key discussion points, and extracted commitments.
+* **Task Delegation**: Create, prioritize, and assign action items to team members.
+* **Conflict Review**: Review cross-meeting decision conflicts; approve changes when delegated authorization by the Admin.
+* **Velocity Tracking**: Monitor milestone health and team workload distribution.
+
+### 3. 👤 Team Member
+* **Permitted Visibility**: Access permitted organizational meetings and public summaries.
+* **Task Execution**: View personal task queue and update task statuses (*Todo*, *In Progress*, *Done*).
+* **Ask CommitOS**: Query organizational memory with grounded RAG to recall past decisions and context.
+* **Security Barriers**: Upload controls and administrative settings are protected by permission gates.
+
+---
+
+## 🔐 Dedicated Role-Based Authentication
+
+CommitOS features dedicated **Sign In** (`/signin`) and **Sign Up** (`/signup`) portals with complete role-based onboarding:
+
+- **Role Selection Portals**: Explicit entry paths for **Organization Admin**, **Team Leader**, and **Team Member** with permission breakdowns.
+- **1-Click Instant Evaluation**: Pre-configured verified profiles (Yug Patel, Rahul Sharma, Priya Nair) for instant testing during hackathons and demos.
+- **Custom Account Registration**: Register custom members with full name, designation title, and organization affiliation.
+- **Multi-Tenant Organization Isolation**: Strict data segregation ensuring members only view records belonging to their active organization.
+- **Protected Application Shell**: Unauthenticated visitors are automatically routed to the role authentication portal.
+
+---
+
+## ⚡ Live Multi-Agent AI System (Google Gemini)
+
+CommitOS runs an autonomous multi-agent pipeline powered by **Google Gemini** (`gemini-3.5-flash-lite`):
+
+```
+Audio Recording / Transcript Input
+              │
+              ▼
+    [ 1. Audio Ingestion & Diarization ]
+              │
+              ▼
+    [ 2. Meeting Intelligence Agent ]
+       ├── Extracts official decisions, confidence scores, and rationales
+       ├── Segregates approved choices vs proposals vs disagreements
+       └── Extracts actionable tasks with assigned owners & deadlines
+              │
+              ├──────────────────────────────┐
+              ▼                              ▼
+    [ 3. Memory Synthesis Agent ]   [ 4. Task Execution Agent ]
+       ├── Indexes decisions & context ├── Populates Kanban board
+       └── Enriches organization memory└── Tracks due dates & status
+              │                              │
+              ▼                              ▼
+    [ 5. Decision Conflict Agent ]  [ 6. Execution Risk Predictor ]
+       ├── Cross-references historical ├── Calculates blast radius
+       └── Flags contradictory items   └── Predicts HIGH/MED/LOW risk
+```
+
+### Signature Feature: Cross-Meeting Decision Conflict Detection
+When a new meeting is processed, CommitOS compares newly proposed items against past decisions:
+* **Real-World Example**:
+  - In Meeting 1, the event date was approved for **December 15**.
+  - In Meeting 3, a member suggests moving the date to **December 20**.
+* **CommitOS Agentic Detection**:
+  - Triggers an instant **Decision Conflict Alert**.
+  - Displays a side-by-side comparison: *Previously Approved (Dec 15)* vs *Newly Proposed (Dec 20)*.
+  - Assesses blast radius: venue booking, speaker availability, and marketing deadlines.
+  - Enforces a Human-in-the-Loop triage workflow (**Approve**, **Reject**, or **Request Discussion**) verified by server-side RBAC.
+
+### Grounded RAG Assistant: Ask CommitOS
+- Queries the organization's decisions, tasks, and memory.
+- Direct answers with **zero hallucinations**, citing the exact meeting title, date, and decision context.
+
+---
+
+## 🔒 Security & Privacy
+
+1. **Masked Secret Keys**: All secret API keys (Gemini, AssemblyAI, Supabase) in Settings are masked with bullet characters (`••••••••••••••••`) and cannot be viewed in clear text.
+2. **Server-Side Enforcement**: All API endpoints (`/api/team/members`, `/api/triage-conflict`, `/api/process-meeting`) verify user identity and role authority on the server before mutating data.
+3. **Audit Trail**: Every invitation, role modification, conflict approval, and login event is permanently recorded in an immutable audit log.
+4. **Zero Simulation Dummy Buttons**: Every button across the application performs actual state changes or API requests.
+
+---
+
+## 📁 Repository Structure
+
+```
+CommitOS/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── ask-commit-os/     # Grounded Gemini RAG endpoint
+│   │   │   ├── process-meeting/   # Multi-agent meeting extraction & conflict detection
+│   │   │   ├── team/members/      # RBAC team member management (invite, role edit, remove)
+│   │   │   └── triage-conflict/   # Server-side conflict ratification with role checks
+│   │   ├── analytics/             # Risk radar, team velocity, & execution analytics
+│   │   ├── meetings/              # Meeting list & detail views with transcript player
+│   │   ├── memory/                # Searchable organizational memory vault & audit trail
+│   │   ├── settings/              # Organization settings, RBAC team roster, & masked keys
+│   │   ├── signin/                # Role-based sign in with 1-click test credentials
+│   │   ├── signup/                # Member registration with role selection
+│   │   ├── tasks/                 # Kanban, list, and calendar task views
+│   │   ├── layout.tsx             # Root layout with AppShell wrapper
+│   │   └── page.tsx               # Executive dashboard & live AI quick query
+│   ├── components/
+│   │   ├── dashboard/             # AskCommitOSWidget & dashboard stat cards
+│   │   ├── layout/                # AppShell, Header, Sidebar with role switchers
+│   │   └── meetings/              # UploadMeetingModal & transcript viewers
+│   └── lib/
+│       ├── demo-data.ts           # Initial seeded organization data (SVIT Podcast Club)
+│       ├── gemini.ts              # Live Google Gemini AI client & prompts
+│       ├── rbac.ts                # Role definitions, permission matrix, & checks
+│       ├── store.ts               # Client-side store, audit logging, & auth state
+│       └── types.ts               # Core TypeScript models (Meeting, Decision, Task, etc.)
+├── supabase/
+│   └── schema.sql                 # Complete PostgreSQL schema with pgvector & RLS
+├── .env                           # Environment variables
+├── package.json                   # Dependencies and scripts
+└── README.md                      # Documentation
 ```
 
 ---
 
-## 👥 Hackathon Demonstration Organization: SVIT Podcast Club
-
-CommitOS is pre-seeded out-of-the-box with a complete demonstration dataset:
-- **Organization**: SVIT Podcast Club
-- **Team**:
-  - **Yug** – Production Head (Lead)
-  - **Rahul** – Marketing Lead
-  - **Yash** – Sponsorship Lead
-  - **Priya** – Event Coordinator
-
-### Three Historical Meetings:
-1. **Meeting 1: Event Planning Meeting (Nov 15)**
-   - *Decisions*: Event Date = December 15; Budget Cap = ₹15,000; Rahul leads marketing; Yash leads sponsorship.
-   - *Tasks*: "Create event poster" (Rahul), "Contact sponsors" (Yash).
-2. **Meeting 2: Production Discussion (Nov 22)**
-   - *Decisions*: Format = Live Interactive Panel; Tech Setup = 4 Shure SM7B mics + 2 Sony A7III 4K cameras.
-   - *Tasks*: "Check recording equipment" (Yug), "Finalize production schedule" (Priya).
-3. **Meeting 3: Follow-up Meeting (Nov 28) [Conflict Demonstration]**
-   - *Event*: Yash proposes shifting event date to December 20 to close an EdTech sponsorship.
-   - *Result*: **Decision Conflict Detected** (Dec 15 vs Dec 20) with pending triage and **HIGH execution risk**.
-
----
-
-## 🎬 Live Hackathon Demonstration Script (60 Seconds)
-
-1. **Dashboard Overview**:
-   - Open CommitOS at `http://localhost:3000`.
-   - Point out the 4 stat cards (3 Meetings, 6 Tasks, High Risk alert).
-   - Point out the **Signature AI Alert Banner** for the Dec 15 vs Dec 20 contradiction.
-2. **Review Conflict Triage**:
-   - Click **Review & Ratify Triage** on the banner (or visit `/meetings/meet-003`).
-   - Open the **AI Insights (1 Conflict)** tab to show the side-by-side diff:
-     - Previously Approved: *December 15* (Nov 15 meeting)
-     - New Proposal: *December 20* (Nov 28 meeting)
-     - Conflict Rationale & Blast Radius impact.
-   - Demonstrate the human-in-the-loop action buttons: **Approve Change**, **Reject Change**, or **Request Discussion**.
-3. **Inspect Organizational Memory**:
-   - Navigate to `/memory`.
-   - Show the searchable timeline and the **Decision History & Audit Trail** recording all changes.
-4. **Execution Tasks**:
-   - Navigate to `/tasks` and switch between **Kanban Board**, **List View**, and **Calendar View**.
-   - Drag or toggle a task status (e.g., mark "Create event poster" as done) and watch team velocity update.
-5. **Ask CommitOS RAG Assistant**:
-   - Return to the Dashboard or use the query bar.
-   - Click the prompt chip: *"What was the approved event budget?"*
-   - Watch CommitOS answer: *"The officially approved event budget is ₹15,000, established during the Event Planning Meeting on November 15, 2026."* citing the exact source!
-6. **Upload New Meeting (Meeting 4 Resolution Sync)**:
-   - Click **Upload Meeting** in the top navigation.
-   - Click **Load Demo Meeting 4** (or upload your own audio).
-   - Click **Run AI Agent Pipeline** and watch the animated multi-agent visualizer process the conversation!
-
----
-
-## 🛠️ Technology Stack
-
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
-- **Styling**: Tailwind CSS, Dark Executive Palette (Zinc / Black `#09090b` / Crisp White)
-- **Icons & Animation**: Lucide React, Framer Motion, Radix UI Primitives
-- **Data Visualization**: Recharts (Workload velocity, execution status distribution, risk radar)
-- **AI Backend**: Google Gemini API (`@google/generative-ai`), Gemini 1.5 Flash / Pro, Gemini Embeddings
-- **Audio Transcription**: Native Gemini 1.5 Audio (Zero external keys required), Deepgram, AssemblyAI
-- **Database & Memory**: Supabase PostgreSQL with `pgvector`, Row Level Security (RLS), and resilient local memory repository.
-
----
-
-## 📦 Getting Started
+## 🚀 Getting Started
 
 ### 1. Prerequisites
-- Node.js 18+ (tested on Node v20/v24)
-- npm or pnpm
+- **Node.js**: v18.0.0 or higher (v20+ recommended)
+- **npm** or **pnpm**
 
-### 2. Installation
+### 2. Clone and Install
 ```bash
-git clone <repo-url>
-cd Hackathon
+git clone https://github.com/Yug030806/CommitOS.git
+cd CommitOS
 npm install
 ```
 
-### 3. Environment Variables
-Copy `.env.example` to `.env.local`:
-```bash
-cp .env.example .env.local
-```
-Add your Google Gemini API Key:
+### 3. Configure Environment Variables
+Create a `.env` file in the root directory:
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
+# Google Gemini AI (Required for Live AI reasoning)
+GEMINI_API_KEY=your_google_gemini_api_key_here
+NEXT_PUBLIC_GEMINI_API_KEY=your_google_gemini_api_key_here
+
+# Optional: Supabase PostgreSQL & Authentication
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
-*(Note: If no API key is provided, CommitOS runs in Offline Demo Mode with its intelligent deterministic reasoning engine).*
 
 ### 4. Run the Development Server
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser. You will be greeted by the role-based authentication portal.
 
 ### 5. Production Build
 ```bash
@@ -174,36 +212,43 @@ npm start
 
 ---
 
-## 🗄️ Database Setup (Supabase PostgreSQL)
+## 👥 Seeded Demonstration Dataset (SVIT Podcast Club)
 
-To connect a remote Supabase database instance:
-1. Create a new Supabase project at [https://supabase.com](https://supabase.com).
-2. Navigate to the **SQL Editor** in your Supabase dashboard.
-3. Open `supabase/schema.sql` from this repository and run the entire script. It creates:
-   - `organizations`, `users`, `organization_members`
-   - `meetings`, `meeting_participants`, `transcripts`
-   - `decisions`, `decision_history`, `decision_conflicts`
-   - `tasks`, `task_comments`
-   - `organizational_memories` with `vector(768)` embeddings
-   - `execution_risks`, `notifications`, `audit_logs`
-   - Row Level Security (RLS) policies and performance indexes.
-4. Add your Supabase URL and Anon key in `Settings` (`/settings`) or in `.env.local`.
+CommitOS comes pre-seeded with a complete organization dataset for instant evaluation:
+
+| Member | Title | Role | Access Level |
+| :--- | :--- | :--- | :--- |
+| **Yug Patel** | Production Head | `org_admin` | Full governance & decision ratification |
+| **Rahul Sharma** | Marketing Lead | `team_leader` | Meeting ingestion & task management |
+| **Yash Mehta** | Sponsorship Lead | `team_leader` | Task management & milestone tracking |
+| **Priya Nair** | Event Coordinator | `team_member` | Task status updates & memory query |
+
+### Historical Meetings:
+1. **Meeting 1: Event Planning Meeting (Nov 15)**
+   - *Decisions*: Event Date = December 15; Budget = ₹15,000; Marketing & Sponsorship leads assigned.
+2. **Meeting 2: Production Discussion (Nov 22)**
+   - *Decisions*: Format = Live Interactive Panel; Audio equipment = Shure SM7B + Sony A7III cameras.
+3. **Meeting 3: Follow-up Sync (Nov 28) — [Conflict Trigger]**
+   - *Event*: Yash proposes shifting the event to December 20 to secure an EdTech sponsor.
+   - *Agent Reaction*: **Decision Conflict Detected** (Dec 15 vs Dec 20) with blast radius analysis and pending triage!
 
 ---
 
-## 🚢 Deployment to Vercel
+## 🧪 Testing the Live AI Features
 
-CommitOS is optimized for deployment on Vercel:
-1. Push your repository to GitHub.
-2. Import the project into Vercel.
-3. Add the environment variables:
-   - `GEMINI_API_KEY`
-   - `NEXT_PUBLIC_GEMINI_API_KEY`
-   - `NEXT_PUBLIC_SUPABASE_URL` (optional)
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (optional)
-4. Click **Deploy**.
+1. **Ask CommitOS RAG**:
+   - Go to the Dashboard or `/memory`.
+   - Ask: *"What was the approved event budget and who is responsible for posters?"*
+   - Watch Gemini answer in real time with exact citations.
+2. **Upload New Meeting**:
+   - As an Organization Admin or Team Leader, click **Upload Meeting**.
+   - Click **Insert Sample Transcript** to test Meeting 4 (Resolution Sync).
+   - Click **Run AI Agent Pipeline** and watch the multi-agent orchestration extract decisions, tasks, and resolve conflicts live!
+3. **Test Role Permissions**:
+   - Sign out or use the role switcher to switch to **Priya Nair (Team Member)**.
+   - Notice that administrative actions like uploading meetings, inviting members, or editing roles are securely disabled.
 
 ---
 
 ## 📄 License
-MIT License. Built for the Agentic AI Hackathon.
+This project is licensed under the MIT License. Built for the Agentic AI Hackathon.

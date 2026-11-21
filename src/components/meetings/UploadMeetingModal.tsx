@@ -73,7 +73,7 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
     { title: 'AI Execution Agent', desc: 'Synthesizing verified tasks and evaluating blast radius' },
   ];
 
-  const handleLoadDemoMeeting4 = () => {
+  const handleLoadSampleTranscript = () => {
     setTitle('Meeting 4: Triage & Execution Sync');
     setTranscriptText(SAMPLE_MEETING_4_TRANSCRIPT.trim());
     setInputMode('text');
@@ -279,12 +279,12 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
                 <div className="ml-auto">
                   <button
                     type="button"
-                    onClick={handleLoadDemoMeeting4}
-                    className="flex items-center gap-1 text-[11px] text-zinc-300 hover:text-white px-2 py-1 rounded bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700 transition-colors"
-                    title="Load sample resolution meeting to see date conflict resolution in action"
+                    onClick={handleLoadSampleTranscript}
+                    className="flex items-center gap-1.5 text-[11px] text-zinc-300 hover:text-white px-2.5 py-1 rounded-md bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700 transition-colors"
+                    title="Insert sample executive sync transcript to test live AI extraction"
                   >
-                    <Play className="w-3 h-3 text-emerald-400 fill-emerald-400" />
-                    <span>Load Demo Meeting 4</span>
+                    <FileText className="w-3 h-3 text-emerald-400" />
+                    <span>Insert Sample Transcript</span>
                   </button>
                 </div>
               </div>

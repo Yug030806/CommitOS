@@ -5,7 +5,6 @@ import {
   Search,
   Bell,
   Upload,
-  RotateCcw,
   Sparkles,
   AlertTriangle,
   CheckCircle2,
@@ -18,6 +17,7 @@ import {
   Users,
   Settings,
   Lock,
+  LogOut,
 } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
 import { DecisionConflict, ExecutionRisk, TeamMember } from '@/lib/types';
@@ -36,7 +36,6 @@ export default function Header({ title, subtitle }: HeaderProps) {
   const [showPersonaMenu, setShowPersonaMenu] = useState(false);
   const [conflicts, setConflicts] = useState<DecisionConflict[]>([]);
   const [risks, setRisks] = useState<ExecutionRisk[]>([]);
-  const [showResetToast, setShowResetToast] = useState(false);
   const [currentUser, setCurrentUser] = useState<TeamMember>(() => CommitOSStore.getCurrentUser());
   const [members, setMembers] = useState<TeamMember[]>(() => CommitOSStore.getMembers());
 
@@ -65,10 +64,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleResetDemo = () => {
-    CommitOSStore.resetToDemo();
-    setShowResetToast(true);
-    setTimeout(() => setShowResetToast(false), 3000);
+  const handleSignOut = () => {
+    CommitOSStore.logout();
+    window.location.href = '/signin';
   };
 
   const handleSwitchUser = (member: TeamMember) => {
@@ -104,14 +102,14 @@ export default function Header({ title, subtitle }: HeaderProps) {
             />
           </div>
 
-          {/* Reset Demo button for Hackathon presentation */}
+          {/* Sign Out Action Button */}
           <button
-            onClick={handleResetDemo}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#16161d] border border-[#262633] text-xs text-zinc-400 hover:text-white hover:bg-[#1f1f27] transition-all"
-            title="Reset data to initial clean demo state"
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#16161d] border border-[#262633] text-xs text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all"
+            title="Sign out of current account"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline text-[11px]">Reset Demo</span>
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden lg:inline text-[11px]">Sign Out</span>
           </button>
 
           {/* Notifications Center */}
@@ -300,21 +298,19 @@ export default function Header({ title, subtitle }: HeaderProps) {
                     <Users className="w-3 h-3" />
                     <span>Manage Team Roster</span>
                   </Link>
-                  <span className="text-[10px] text-zinc-500 font-mono">RBAC MVP</span>
+                  <button
+                    onClick={handleSignOut}
+                    className="text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors font-medium text-[11px]"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    <span>Sign Out</span>
+                  </button>
                 </div>
               </div>
             )}
           </div>
         </div>
       </header>
-
-      {/* Demo Reset Feedback Toast */}
-      {showResetToast && (
-        <div className="fixed bottom-5 right-5 z-50 bg-[#16161d] border border-zinc-700 px-4 py-2.5 rounded-xl text-xs text-white shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>Demo restored to initial clean state.</span>
-        </div>
-      )}
 
       {/* Upload Meeting Modal */}
       <UploadMeetingModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />

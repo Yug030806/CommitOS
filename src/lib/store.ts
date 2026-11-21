@@ -33,6 +33,7 @@ const STORAGE_KEYS = {
   ORGANIZATIONS: 'commitos_organizations',
   ACTIVE_ORG_ID: 'commitos_active_org_id',
   CURRENT_USER: 'commitos_current_user',
+  AUTH_USER: 'commitos_auth_user',
   LEADER_APPROVAL_AUTH: 'commitos_leader_approval_authorized',
   AUDIT_LOGS: 'commitos_audit_logs',
   MEETINGS: 'commitos_meetings',
@@ -59,7 +60,7 @@ export interface AppSettings {
 
 const DEFAULT_SETTINGS: AppSettings = {
   geminiApiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || '',
-  geminiModel: 'gemini-1.5-flash',
+  geminiModel: 'gemini-3.5-flash-lite',
   transcriptionProvider: 'gemini_audio',
   deepgramApiKey: '',
   assemblyAiApiKey: '',
@@ -180,9 +181,50 @@ export class CommitOSStore {
     });
   }
 
-  // Current active user persona
+  // Current active user persona and authentication session
+  static isAuthenticated(): boolean {
+    if (typeof window === 'undefined') return true;
+    const authUser = safeGet<TeamMember | null>(STORAGE_KEYS.AUTH_USER, null);
+    return Boolean(authUser);
+  }
+
+  static login(user: TeamMember): void {
+    safeSet(STORAGE_KEYS.AUTH_USER, user);
+    safeSet(STORAGE_KEYS.CURRENT_USER, user);
+    if (user.organizationId) {
+      safeSet(STORAGE_KEYS.ACTIVE_ORG_ID, user.organizationId);
+    }
+    this.addAuditLog({
+      organizationId: user.organizationId || this.getActiveOrgId(),
+      actorId: user.id,
+      actorName: user.name,
+      actorRole: user.role,
+      action: 'USER_LOGGED_IN',
+      entityType: 'member',
+      entityId: user.id,
+      metadata: { role: user.role, email: user.email },
+    });
+  }
+
+  static logout(): void {
+    const actor = this.getCurrentUser();
+    if (actor) {
+      this.addAuditLog({
+        organizationId: actor.organizationId || this.getActiveOrgId(),
+        actorId: actor.id,
+        actorName: actor.name,
+        actorRole: actor.role,
+        action: 'USER_LOGGED_OUT',
+        entityType: 'member',
+        entityId: actor.id,
+      });
+    }
+    safeSet(STORAGE_KEYS.AUTH_USER, null);
+  }
+
   static getCurrentUser(): TeamMember {
-    const user = safeGet<TeamMember>(STORAGE_KEYS.CURRENT_USER, DEMO_MEMBERS[0]);
+    const authUser = safeGet<TeamMember | null>(STORAGE_KEYS.AUTH_USER, null);
+    const user = authUser || safeGet<TeamMember>(STORAGE_KEYS.CURRENT_USER, DEMO_MEMBERS[0]);
     // Ensure active organization role alignment
     const org = this.getOrganization();
     const memberInOrg = org.members.find((m) => m.id === user.id || m.email === user.email);
@@ -193,6 +235,7 @@ export class CommitOSStore {
   }
 
   static setCurrentUser(user: TeamMember): void {
+    safeSet(STORAGE_KEYS.AUTH_USER, user);
     safeSet(STORAGE_KEYS.CURRENT_USER, user);
   }
 
