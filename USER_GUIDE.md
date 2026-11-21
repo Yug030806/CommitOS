@@ -292,7 +292,6 @@ CommitOS ensures spoken action items turn into finished deliverables.
 * **Kanban Board & List Views**: Organize tasks by status:
   - `Todo` — Pending action items freshly extracted from meetings.
   - `In Progress` — Tasks currently being worked on by assigned members.
-  - `Review` — Finished deliverables awaiting lead review.
   - `Completed` — Executed and archived commitments.
 * **Interactive Status Updates**: Any team member can click a task status badge or drag a card to transition it from *Todo* to *Completed*.
 * **Priority Badges**:

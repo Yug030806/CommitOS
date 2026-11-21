@@ -9,6 +9,7 @@ import {
   DecisionHistoryItem,
   DecisionConflict,
   Task,
+  TaskStatus,
   OrganizationalMemory,
   ExecutionRisk,
   ChatMessage,
@@ -622,7 +623,9 @@ export class CommitOSStore {
   static getTasks(orgId?: string): Task[] {
     const targetOrgId = orgId || this.getActiveOrgId();
     const tasks = safeGet<Task[]>(STORAGE_KEYS.TASKS, DEMO_TASKS);
-    return tasks.filter((t) => t.organizationId === targetOrgId);
+    return tasks
+      .filter((t) => t.organizationId === targetOrgId)
+      .map((t) => ((t.status as string) === 'review' ? { ...t, status: 'in_progress' as TaskStatus } : t));
   }
 
   static addTask(task: Task): void {

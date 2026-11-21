@@ -48,14 +48,12 @@ export default function AnalyticsPage() {
   const completedTasks = tasks.filter((t) => t.status === 'completed').length;
   const inProgressTasks = tasks.filter((t) => t.status === 'in_progress').length;
   const todoTasks = tasks.filter((t) => t.status === 'todo').length;
-  const reviewTasks = tasks.filter((t) => t.status === 'review').length;
   const completionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
 
   const statusPieData = [
     { name: 'Completed', value: completedTasks, color: '#f4f4f5' },
     { name: 'In Progress', value: inProgressTasks, color: '#71717a' },
     { name: 'To Do', value: todoTasks, color: '#3f3f46' },
-    { name: 'In Review', value: reviewTasks, color: '#27272a' },
   ];
 
   const teamWorkloadData = ['Yug', 'Rahul', 'Yash', 'Priya'].map((name) => {

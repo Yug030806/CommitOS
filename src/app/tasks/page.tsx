@@ -116,7 +116,6 @@ export default function TasksPage() {
   const columns: { key: TaskStatus; label: string }[] = [
     { key: 'todo', label: 'To Do' },
     { key: 'in_progress', label: 'In Progress' },
-    { key: 'review', label: 'In Review' },
     { key: 'completed', label: 'Completed' },
   ];
 
@@ -247,7 +246,7 @@ export default function TasksPage() {
 
       {/* VIEW 1: KANBAN BOARD */}
       {viewMode === 'kanban' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {columns.map((col) => {
             const colTasks = filteredTasks.filter((t) => t.status === col.key);
             return (

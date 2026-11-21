@@ -1,6 +1,6 @@
 export type DecisionStatus = 'approved' | 'proposed' | 'rejected' | 'superseded';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
-export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'completed';
+export type TaskStatus = 'todo' | 'in_progress' | 'completed';
 export type ConflictStatus = 'pending' | 'approved' | 'rejected' | 'discussed';
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 
