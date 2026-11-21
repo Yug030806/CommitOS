@@ -18,18 +18,21 @@ export default function SignInPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const rolePresets: Record<AppRole, { member: TeamMember; label: string }> = {
+  const rolePresets: Record<AppRole, { member: TeamMember; label: string; mobileLabel?: string }> = {
     org_admin: {
       member: DEMO_MEMBERS[0], // Yug
       label: 'Admin',
+      mobileLabel: 'Admin',
     },
     team_leader: {
       member: DEMO_MEMBERS[1], // Rahul
       label: 'Team Leader',
+      mobileLabel: 'Leader',
     },
     team_member: {
       member: DEMO_MEMBERS[3], // Priya
       label: 'Team Member',
+      mobileLabel: 'Member',
     },
   };
 
@@ -81,7 +84,7 @@ export default function SignInPage() {
 
       {/* Main Translucent Card (Background Emblem Visible Through It with Darkened Backdrop for Legibility) */}
       <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-300">
-        <div className="rounded-3xl bg-black/65 backdrop-blur-md border border-white/20 p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)]">
+        <div className="rounded-3xl bg-black/65 backdrop-blur-md border border-white/20 p-6 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)]">
           {/* Brand Logo Header */}
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3">
@@ -107,19 +110,20 @@ export default function SignInPage() {
             <div className="grid grid-cols-3 p-1 rounded-xl bg-black/80 border border-white/20 shadow-inner">
               {(['org_admin', 'team_leader', 'team_member'] as AppRole[]).map((r) => {
                 const isSelected = selectedRole === r;
-                const label = rolePresets[r].label;
+                const preset = rolePresets[r];
                 return (
                   <button
                     key={r}
                     type="button"
                     onClick={() => handleSelectRole(r)}
-                    className={`py-2 text-xs rounded-lg transition-all text-center ${
+                    className={`py-2 px-1 text-xs rounded-lg transition-all text-center ${
                       isSelected
                         ? 'bg-white text-zinc-950 font-extrabold shadow-md'
                         : 'text-zinc-300 hover:text-white hover:bg-white/10 font-bold'
                     }`}
                   >
-                    {label}
+                    <span className="hidden sm:inline">{preset.label}</span>
+                    <span className="sm:hidden">{preset.mobileLabel || preset.label}</span>
                   </button>
                 );
               })}

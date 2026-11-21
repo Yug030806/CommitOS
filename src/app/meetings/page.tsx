@@ -52,7 +52,7 @@ export default function MeetingsPage() {
   });
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto w-full min-w-0">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1f1f27] pb-6">
         <div>
@@ -65,7 +65,7 @@ export default function MeetingsPage() {
         {canUpload ? (
           <button
             onClick={() => setIsUploadOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-all shadow-md active:scale-95 shrink-0"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-all shadow-md active:scale-95 shrink-0 self-start sm:self-center"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Upload Recording</span>
@@ -73,7 +73,7 @@ export default function MeetingsPage() {
         ) : (
           <button
             onClick={() => setIsUploadOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 border border-zinc-700/60 text-xs transition-all shrink-0"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 border border-zinc-700/60 text-xs transition-all shrink-0 self-start sm:self-center"
             title="Upload requires Organization Admin or Team Leader privileges. Team Members have read-only access."
           >
             <Lock className="w-3.5 h-3.5 text-zinc-500" />
@@ -95,10 +95,10 @@ export default function MeetingsPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
               statusFilter === 'all'
                 ? 'bg-zinc-800 text-white border border-zinc-700'
                 : 'text-zinc-400 hover:text-white bg-[#14141a] border border-[#23232e]'
@@ -108,7 +108,7 @@ export default function MeetingsPage() {
           </button>
           <button
             onClick={() => setStatusFilter('processed')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
               statusFilter === 'processed'
                 ? 'bg-zinc-800 text-white border border-zinc-700'
                 : 'text-zinc-400 hover:text-white bg-[#14141a] border border-[#23232e]'
@@ -118,7 +118,7 @@ export default function MeetingsPage() {
           </button>
           <button
             onClick={() => setStatusFilter('needs_review')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
               statusFilter === 'needs_review'
                 ? 'bg-zinc-800 text-white border border-zinc-700'
                 : 'text-zinc-400 hover:text-white bg-[#14141a] border border-[#23232e]'

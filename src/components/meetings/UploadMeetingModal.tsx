@@ -161,10 +161,10 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-xl rounded-2xl bg-[#121217] border border-[#272733] shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-xl rounded-2xl bg-[#121217] border border-[#272733] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-[#1f1f27] flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-[#1f1f27] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white">
               <Upload className="w-3.5 h-3.5" />
@@ -184,7 +184,7 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
         </div>
 
         {/* Modal Content */}
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto">
           {isProcessing ? (
             /* Multi-Agent Orchestration Visualizer */
             <div className="py-6 space-y-5">
@@ -250,7 +250,7 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
               </div>
 
               {/* Input Mode Selector */}
-              <div className="flex items-center gap-2 border-b border-[#21212b] pb-2">
+              <div className="flex flex-wrap items-center gap-2 border-b border-[#21212b] pb-2">
                 <button
                   type="button"
                   onClick={() => setInputMode('text')}
@@ -276,11 +276,11 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
                   <span>Upload Audio File</span>
                 </button>
 
-                <div className="ml-auto">
+                <div className="w-full sm:w-auto sm:ml-auto">
                   <button
                     type="button"
                     onClick={handleLoadSampleTranscript}
-                    className="flex items-center gap-1.5 text-[11px] text-zinc-300 hover:text-white px-2.5 py-1 rounded-md bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700 transition-colors"
+                    className="w-full sm:w-auto flex items-center justify-center gap-1.5 text-[11px] text-zinc-300 hover:text-white px-2.5 py-1 rounded-md bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700 transition-colors"
                     title="Insert sample executive sync transcript to test live AI extraction"
                   >
                     <FileText className="w-3 h-3 text-zinc-300" />

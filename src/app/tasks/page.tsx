@@ -121,7 +121,7 @@ export default function TasksPage() {
   ];
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto w-full min-w-0">
       {/* Header & View Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1f1f27] pb-6">
         <div>
@@ -131,7 +131,7 @@ export default function TasksPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {/* View Switcher Pills */}
           <div className="flex items-center p-1 rounded-lg bg-[#14141a] border border-[#23232e]">
             <button
@@ -172,7 +172,7 @@ export default function TasksPage() {
           {canCreate ? (
             <button
               onClick={() => setIsAddOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors shadow"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors shadow shrink-0"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Add Task</span>
@@ -180,7 +180,7 @@ export default function TasksPage() {
           ) : (
             <div
               title="Creating and assigning tasks requires Organization Admin or Team Leader privileges"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/60 text-zinc-500 border border-zinc-800 text-xs cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/60 text-zinc-500 border border-zinc-800 text-xs cursor-not-allowed shrink-0"
             >
               <Lock className="w-3.5 h-3.5 text-zinc-500" />
               <span>Add Task (Leader/Admin)</span>
@@ -253,7 +253,7 @@ export default function TasksPage() {
             return (
               <div
                 key={col.key}
-                className="rounded-xl bg-[#101015] border border-[#1f1f28] p-4 flex flex-col min-h-[500px]"
+                className="rounded-xl bg-[#101015] border border-[#1f1f28] p-4 flex flex-col min-h-[220px] md:min-h-[500px]"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-[#1b1b24] mb-3">
                   <div className="flex items-center gap-2">

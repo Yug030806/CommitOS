@@ -18,12 +18,18 @@ import {
   Check,
   Users,
   LogOut,
+  X,
 } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
 import { Organization, DecisionConflict, ExecutionRisk, TeamMember } from '@/lib/types';
 import { ROLE_DEFINITIONS } from '@/lib/rbac';
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [org, setOrg] = useState<Organization | null>(null);
   const [allOrgs, setAllOrgs] = useState<Organization[]>([]);
@@ -107,22 +113,49 @@ export default function Sidebar() {
   const roleDef = ROLE_DEFINITIONS[currentUser.role] || ROLE_DEFINITIONS.team_member;
 
   return (
-    <aside className="w-64 h-screen bg-[#0d0d11] border-r border-[#1f1f27] flex flex-col justify-between select-none fixed left-0 top-0 z-40">
-      {/* Brand & Organization Header */}
-      <div>
-        <div className="p-4 border-b border-[#1f1f27]">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <img
-              src="/logo-icon-white.png"
-              alt="CommitOS"
-              className="w-8 h-8 object-contain rounded-lg group-hover:scale-105 transition-transform shrink-0"
-            />
-            <div className="min-w-0">
-              <span className="font-bold text-white text-base tracking-tight block">CommitOS</span>
-              <p className="text-[10px] text-zinc-400 font-normal truncate">AI Decision &amp; Execution</p>
-            </div>
-          </Link>
-        </div>
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
+          onClick={onClose}
+          aria-label="Close navigation overlay"
+        />
+      )}
+
+      <aside
+        className={`w-64 h-screen bg-[#0d0d11] border-r border-[#1f1f27] flex flex-col justify-between select-none fixed left-0 top-0 z-50 transition-transform duration-200 ease-in-out md:translate-x-0 ${
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        }`}
+      >
+        {/* Brand & Organization Header */}
+        <div>
+          <div className="p-4 border-b border-[#1f1f27] flex items-center justify-between">
+            <Link
+              href="/"
+              onClick={onClose}
+              className="flex items-center gap-2.5 group min-w-0"
+            >
+              <img
+                src="/logo-icon-white.png"
+                alt="CommitOS"
+                className="w-8 h-8 object-contain rounded-lg group-hover:scale-105 transition-transform shrink-0"
+              />
+              <div className="min-w-0">
+                <span className="font-bold text-white text-base tracking-tight block">CommitOS</span>
+                <p className="text-[10px] text-zinc-400 font-normal truncate">AI Decision &amp; Execution</p>
+              </div>
+            </Link>
+
+            {/* Mobile Close Button */}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 md:hidden transition-colors shrink-0"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
         {/* Organization Switcher Dropdown (Multi-Tenant Isolation) */}
         <div className="p-3 border-b border-[#1a1a22] relative" ref={orgDropdownRef}>
@@ -172,7 +205,10 @@ export default function Sidebar() {
               <div className="mt-2 pt-2 border-t border-[#252533] px-1">
                 <Link
                   href="/settings?tab=team"
-                  onClick={() => setIsOrgDropdownOpen(false)}
+                  onClick={() => {
+                    setIsOrgDropdownOpen(false);
+                    onClose?.();
+                  }}
                   className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1.5 py-1"
                 >
                   <Users className="w-3.5 h-3.5" />
@@ -192,6 +228,7 @@ export default function Sidebar() {
               <p className="text-[10px] text-zinc-400 truncate">Dec 15 vs Dec 20 date drift</p>
               <Link
                 href="/meetings/meet-003"
+                onClick={onClose}
                 className="text-[10px] text-zinc-300 hover:text-white underline font-medium inline-block mt-0.5"
               >
                 Review & Triage →
@@ -209,6 +246,7 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={onClose}
                 className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                   isActive
                     ? 'bg-zinc-800 text-white font-semibold shadow-sm border border-zinc-700/60'
@@ -255,5 +293,6 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }

@@ -73,7 +73,7 @@ export default function MeetingDetailPage({ params }: PageProps) {
   );
 
   return (
-    <div className="p-8 space-y-6 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-8 space-y-6 max-w-6xl mx-auto w-full min-w-0">
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center justify-between">
         <Link

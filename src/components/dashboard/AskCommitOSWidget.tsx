@@ -117,8 +117,8 @@ export default function AskCommitOSWidget({ highlighted = true }: AskCommitOSWid
     <div
       className={`rounded-2xl transition-all ${
         highlighted
-          ? 'bg-gradient-to-b from-[#15151c] to-[#0e0e13] border-2 border-white/20 shadow-[0_0_50px_-15px_rgba(255,255,255,0.12)] p-6'
-          : 'bg-[#121217] border border-[#23232f] p-5'
+          ? 'bg-gradient-to-b from-[#15151c] to-[#0e0e13] border-2 border-white/20 shadow-[0_0_50px_-15px_rgba(255,255,255,0.12)] p-4 sm:p-6'
+          : 'bg-[#121217] border border-[#23232f] p-4 sm:p-5'
       }`}
     >
       {/* Highlighted Header */}
@@ -196,7 +196,7 @@ export default function AskCommitOSWidget({ highlighted = true }: AskCommitOSWid
               className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
             >
               <div
-                className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[85%] ${
+                className={`p-3 sm:p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[95%] sm:max-w-[85%] ${
                   msg.role === 'user'
                     ? 'bg-white text-black font-medium rounded-br-xs shadow-md'
                     : 'bg-[#1a1a24] text-zinc-100 rounded-bl-xs border border-zinc-700/80 shadow-sm'

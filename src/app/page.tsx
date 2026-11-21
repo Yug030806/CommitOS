@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const pendingConflicts = conflicts.filter((c) => c.status === 'pending');
 
   return (
-    <div className="p-6 sm:p-8 space-y-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-8 space-y-6 max-w-5xl mx-auto w-full min-w-0">
       {/* Clean Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1f1f27] pb-5">
         <div>

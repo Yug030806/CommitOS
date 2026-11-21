@@ -178,7 +178,7 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {/* 1. Reject Change */}
                 {canReject ? (
                   <button
