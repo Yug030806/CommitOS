@@ -3,6 +3,8 @@ import { analyzeMeetingWithGemini, detectConflictsWithGemini } from '@/lib/gemin
 import { Meeting, Decision, Task, TranscriptItem, AppRole } from '@/lib/types';
 import { RBAC } from '@/lib/rbac';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

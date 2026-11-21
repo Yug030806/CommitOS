@@ -4,6 +4,8 @@ import { AppRole, TeamMember } from '@/lib/types';
 import { DEMO_MEMBERS } from '@/lib/demo-data';
 import { getSupabaseClient } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
