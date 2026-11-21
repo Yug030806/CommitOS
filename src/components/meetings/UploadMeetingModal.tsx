@@ -18,6 +18,7 @@ import {
 import { SAMPLE_MEETING_4_TRANSCRIPT } from '@/lib/demo-data';
 import { CommitOSStore } from '@/lib/store';
 import { Meeting } from '@/lib/types';
+import { RBAC } from '@/lib/rbac';
 
 interface UploadMeetingModalProps {
   isOpen: boolean;
@@ -26,6 +27,9 @@ interface UploadMeetingModalProps {
 
 export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingModalProps) {
   const router = useRouter();
+  const currentUser = CommitOSStore.getCurrentUser();
+  const canUpload = RBAC.canUploadMeetings(currentUser.role);
+
   const [title, setTitle] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [transcriptText, setTranscriptText] = useState('');
@@ -35,6 +39,31 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
   const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
+
+  if (!canUpload) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-[#121218] border border-rose-500/30 rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
+          <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+            <ShieldAlert className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-white">Permission Required</h3>
+            <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+              Your current role is <strong className="text-zinc-200">Team Member</strong> ({currentUser.name}).
+              Only <strong className="text-rose-300">Organization Admins</strong> and <strong className="text-amber-300">Team Leaders</strong> are authorized to upload recordings and trigger AI meeting ingestion.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const agentSteps = [
     { title: 'Audio Ingestion & Transcription', desc: 'Processing audio stream / speech-to-text tokens' },
@@ -93,6 +122,8 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
           historicalDecisions,
           apiKey: settings.geminiApiKey,
           model: settings.geminiModel,
+          actorRole: currentUser.role,
+          organizationId: CommitOSStore.getActiveOrgId(),
         }),
       });
 

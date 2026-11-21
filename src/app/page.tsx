@@ -18,9 +18,11 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
-import { Meeting, Task, Decision, ExecutionRisk, DecisionConflict } from '@/lib/types';
+import { Meeting, Task, Decision, ExecutionRisk, DecisionConflict, TeamMember } from '@/lib/types';
+import { RBAC } from '@/lib/rbac';
 import AskCommitOSWidget from '@/components/dashboard/AskCommitOSWidget';
 import UploadMeetingModal from '@/components/meetings/UploadMeetingModal';
+import { Lock } from 'lucide-react';
 
 export default function DashboardPage() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -29,6 +31,8 @@ export default function DashboardPage() {
   const [risks, setRisks] = useState<ExecutionRisk[]>([]);
   const [conflicts, setConflicts] = useState<DecisionConflict[]>([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<TeamMember>(() => CommitOSStore.getCurrentUser());
+  const [members, setMembers] = useState<TeamMember[]>(() => CommitOSStore.getMembers());
 
   const loadData = () => {
     setMeetings(CommitOSStore.getMeetings());
@@ -36,6 +40,8 @@ export default function DashboardPage() {
     setDecisions(CommitOSStore.getDecisions());
     setRisks(CommitOSStore.getRisks());
     setConflicts(CommitOSStore.getConflicts());
+    setCurrentUser(CommitOSStore.getCurrentUser());
+    setMembers(CommitOSStore.getMembers());
   };
 
   useEffect(() => {
@@ -43,6 +49,8 @@ export default function DashboardPage() {
     window.addEventListener('commitos_storage_updated', loadData);
     return () => window.removeEventListener('commitos_storage_updated', loadData);
   }, []);
+
+  const canUpload = RBAC.canUploadMeetings(currentUser.role);
 
   const toggleTaskStatus = (task: Task) => {
     const nextStatus = task.status === 'completed' ? 'todo' : 'completed';
@@ -58,10 +66,10 @@ export default function DashboardPage() {
   const pendingConflicts = conflicts.filter((c) => c.status === 'pending');
 
   // Team member completion stats
-  const memberStats = ['Yug', 'Rahul', 'Yash', 'Priya'].map((name) => {
-    const memberTasks = tasks.filter((t) => t.assigneeName.includes(name));
+  const memberStats = members.map((m) => {
+    const memberTasks = tasks.filter((t) => t.assigneeName.includes(m.name));
     const done = memberTasks.filter((t) => t.status === 'completed').length;
-    return { name, total: memberTasks.length, done };
+    return { name: m.name, total: memberTasks.length, done };
   });
 
   return (
@@ -82,13 +90,24 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-all shadow-lg active:scale-95"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Upload Meeting</span>
-          </button>
+          {canUpload ? (
+            <button
+              onClick={() => setIsUploadOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-all shadow-lg active:scale-95"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Upload Meeting</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsUploadOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 border border-zinc-700/60 text-xs transition-all shadow-sm"
+              title="Upload requires Organization Admin or Team Leader privileges. Team Members have view-only access."
+            >
+              <Lock className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Upload Meeting</span>
+            </button>
+          )}
         </div>
       </div>
 

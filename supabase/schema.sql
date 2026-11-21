@@ -27,13 +27,13 @@ CREATE TABLE IF NOT EXISTS public.organizations (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. ORGANIZATION MEMBERS
+-- 4. ORGANIZATION MEMBERS (Three Primary Roles: org_admin, team_leader, team_member)
 CREATE TABLE IF NOT EXISTS public.organization_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    role TEXT NOT NULL DEFAULT 'member', -- 'owner', 'admin', 'member'
-    title TEXT NOT NULL,                 -- e.g. 'Production Head', 'Marketing Lead'
+    role TEXT NOT NULL DEFAULT 'team_member', -- 'org_admin', 'team_leader', 'team_member'
+    title TEXT NOT NULL,                      -- e.g. 'Production Head', 'Marketing Lead'
     joined_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(organization_id, user_id)
 );
@@ -206,47 +206,147 @@ CREATE INDEX IF NOT EXISTS idx_conflicts_org ON public.decision_conflicts(organi
 CREATE INDEX IF NOT EXISTS idx_memories_org ON public.organizational_memories(organization_id);
 CREATE INDEX IF NOT EXISTS idx_memories_embedding ON public.organizational_memories USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
--- 18. ROW LEVEL SECURITY (RLS) POLICIES
+-- 18. ROW LEVEL SECURITY (RLS) HELPER FUNCTIONS & POLICIES
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.organization_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meetings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.decisions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.decision_conflicts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.organizational_memories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.execution_risks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
--- Allow authenticated organization members to access organization resources
-CREATE POLICY "Allow members full access to their organization data"
-    ON public.organizations
-    FOR ALL
-    USING (true);
+-- Helper function: Check if current auth user belongs to organization
+CREATE OR REPLACE FUNCTION public.is_org_member(org_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.organization_members
+    WHERE organization_id = org_id AND user_id = auth.uid()
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE POLICY "Allow org access to meetings"
-    ON public.meetings
-    FOR ALL
-    USING (true);
+-- Helper function: Check if current auth user is Organization Admin
+CREATE OR REPLACE FUNCTION public.is_org_admin(org_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.organization_members
+    WHERE organization_id = org_id AND user_id = auth.uid() AND role = 'org_admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE POLICY "Allow org access to decisions"
-    ON public.decisions
-    FOR ALL
-    USING (true);
+-- Helper function: Check if current auth user is Team Leader or Admin
+CREATE OR REPLACE FUNCTION public.is_leader_or_admin(org_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.organization_members
+    WHERE organization_id = org_id AND user_id = auth.uid() AND role IN ('org_admin', 'team_leader')
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE POLICY "Allow org access to tasks"
-    ON public.tasks
-    FOR ALL
-    USING (true);
+-- 1. Organizations Policies (Isolation: Only members can view their organization)
+CREATE POLICY "Members can view their own organization"
+    ON public.organizations FOR SELECT
+    USING (public.is_org_member(id));
 
-CREATE POLICY "Allow org access to conflicts"
-    ON public.decision_conflicts
-    FOR ALL
-    USING (true);
+CREATE POLICY "Admins can update their organization"
+    ON public.organizations FOR UPDATE
+    USING (public.is_org_admin(id));
 
-CREATE POLICY "Allow org access to memories"
-    ON public.organizational_memories
-    FOR ALL
-    USING (true);
+-- 2. Organization Members Policies (Role management restricted to Admins)
+CREATE POLICY "Members can view roster of their organization"
+    ON public.organization_members FOR SELECT
+    USING (public.is_org_member(organization_id));
 
-CREATE POLICY "Allow org access to risks"
-    ON public.execution_risks
-    FOR ALL
-    USING (true);
+CREATE POLICY "Admins can invite and assign member roles"
+    ON public.organization_members FOR INSERT
+    WITH CHECK (public.is_org_admin(organization_id));
+
+CREATE POLICY "Admins can modify member roles"
+    ON public.organization_members FOR UPDATE
+    USING (public.is_org_admin(organization_id));
+
+CREATE POLICY "Admins can remove members"
+    ON public.organization_members FOR DELETE
+    USING (public.is_org_admin(organization_id));
+
+-- 3. Meetings Policies (Leaders and Admins can upload meetings)
+CREATE POLICY "Members can view meetings in their organization"
+    ON public.meetings FOR SELECT
+    USING (public.is_org_member(organization_id));
+
+CREATE POLICY "Leaders and Admins can create meetings"
+    ON public.meetings FOR INSERT
+    WITH CHECK (public.is_leader_or_admin(organization_id));
+
+CREATE POLICY "Admins can delete meetings"
+    ON public.meetings FOR DELETE
+    USING (public.is_org_admin(organization_id));
+
+-- 4. Decisions Policies
+CREATE POLICY "Members can view decisions in their organization"
+    ON public.decisions FOR SELECT
+    USING (public.is_org_member(organization_id));
+
+CREATE POLICY "Leaders and Admins can create decisions"
+    ON public.decisions FOR INSERT
+    WITH CHECK (public.is_leader_or_admin(organization_id));
+
+CREATE POLICY "Admins can modify ratified decisions"
+    ON public.decisions FOR UPDATE
+    USING (public.is_org_admin(organization_id));
+
+-- 5. Decision Conflicts Policies (Signature Security: Official approval restricted to Admins)
+CREATE POLICY "Members can view decision conflicts"
+    ON public.decision_conflicts FOR SELECT
+    USING (public.is_org_member(organization_id));
+
+CREATE POLICY "Admins can ratify decision conflicts"
+    ON public.decision_conflicts FOR UPDATE
+    USING (public.is_org_admin(organization_id));
+
+-- 6. Tasks Policies (Members can update status; Leaders/Admins can create & assign)
+CREATE POLICY "Members can view organization tasks"
+    ON public.tasks FOR SELECT
+    USING (public.is_org_member(organization_id));
+
+CREATE POLICY "Leaders and Admins can create tasks"
+    ON public.tasks FOR INSERT
+    WITH CHECK (public.is_leader_or_admin(organization_id));
+
+CREATE POLICY "Members can update task progress"
+    ON public.tasks FOR UPDATE
+    USING (public.is_org_member(organization_id));
+
+CREATE POLICY "Leaders and Admins can delete tasks"
+    ON public.tasks FOR DELETE
+    USING (public.is_leader_or_admin(organization_id));
+
+-- 7. Memories & Embeddings Policies
+CREATE POLICY "Members can query organizational memory"
+    ON public.organizational_memories FOR SELECT
+    USING (public.is_org_member(organization_id));
+
+CREATE POLICY "Leaders and Admins can write memory records"
+    ON public.organizational_memories FOR INSERT
+    WITH CHECK (public.is_leader_or_admin(organization_id));
+
+-- 8. Execution Risks Policies
+CREATE POLICY "Members can view execution risks"
+    ON public.execution_risks FOR SELECT
+    USING (public.is_org_member(organization_id));
+
+-- 9. Audit Logs Policies (Tamper-evident trail for leaders & admins)
+CREATE POLICY "Leaders and Admins can view audit logs"
+    ON public.audit_logs FOR SELECT
+    USING (public.is_leader_or_admin(organization_id));
+
+CREATE POLICY "System can record audit logs"
+    ON public.audit_logs FOR INSERT
+    WITH CHECK (public.is_org_member(organization_id));

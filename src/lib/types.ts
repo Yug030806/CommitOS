@@ -4,12 +4,44 @@ export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'completed';
 export type ConflictStatus = 'pending' | 'approved' | 'rejected' | 'discussed';
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 
+export type AppRole = 'org_admin' | 'team_leader' | 'team_member';
+
 export interface TeamMember {
   id: string;
+  userId?: string;
+  organizationId?: string;
   name: string;
   email: string;
-  role: string; // e.g., "Production Head", "Marketing Lead"
-  avatar: string;
+  role: AppRole;
+  title: string; // e.g., "Production Head", "Marketing Lead"
+  avatar?: string;
+  joinedAt?: string;
+  status?: 'active' | 'invited';
+}
+
+export interface AuditLog {
+  id: string;
+  organizationId: string;
+  actorId: string;
+  actorName: string;
+  actorRole: AppRole;
+  action: string; // e.g. 'DECISION_APPROVED', 'ROLE_MODIFIED', 'MEMBER_INVITED'
+  entityType: 'organization' | 'member' | 'decision' | 'conflict' | 'meeting' | 'task' | 'settings';
+  entityId: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+}
+
+export interface UserSession {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    avatar?: string;
+  };
+  organizationId: string;
+  role: AppRole;
+  title: string;
 }
 
 export interface Organization {

@@ -2,6 +2,8 @@
 
 import {
   Organization,
+  TeamMember,
+  AppRole,
   Meeting,
   Decision,
   DecisionHistoryItem,
@@ -11,19 +13,28 @@ import {
   ExecutionRisk,
   ChatMessage,
   ConflictStatus,
+  AuditLog,
 } from './types';
 import {
   DEMO_ORGANIZATION,
+  DEMO_ORGANIZATIONS,
+  DEMO_MEMBERS,
   DEMO_MEETINGS,
   DEMO_DECISIONS,
   DEMO_CONFLICTS,
   DEMO_TASKS,
   DEMO_MEMORIES,
   DEMO_RISKS,
+  DEMO_AUDIT_LOGS,
 } from './demo-data';
+import { RBAC } from './rbac';
 
 const STORAGE_KEYS = {
-  ORGANIZATION: 'commitos_organization',
+  ORGANIZATIONS: 'commitos_organizations',
+  ACTIVE_ORG_ID: 'commitos_active_org_id',
+  CURRENT_USER: 'commitos_current_user',
+  LEADER_APPROVAL_AUTH: 'commitos_leader_approval_authorized',
+  AUDIT_LOGS: 'commitos_audit_logs',
   MEETINGS: 'commitos_meetings',
   DECISIONS: 'commitos_decisions',
   DECISION_HISTORY: 'commitos_decision_history',
@@ -71,7 +82,6 @@ function safeSet<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
-    // Trigger custom window event for inter-component reactive updates
     window.dispatchEvent(new Event('commitos_storage_updated'));
   } catch (err) {
     console.error('Failed to save to localStorage:', err);
@@ -79,10 +89,14 @@ function safeSet<T>(key: string, value: T): void {
 }
 
 export class CommitOSStore {
-  // Reset all data back to clean SVIT Podcast Club initial demo state
+  // Reset all data back to clean initial demo state
   static resetToDemo(): void {
     if (typeof window === 'undefined') return;
-    safeSet(STORAGE_KEYS.ORGANIZATION, DEMO_ORGANIZATION);
+    safeSet(STORAGE_KEYS.ORGANIZATIONS, DEMO_ORGANIZATIONS);
+    safeSet(STORAGE_KEYS.ACTIVE_ORG_ID, DEMO_ORGANIZATION.id);
+    safeSet(STORAGE_KEYS.CURRENT_USER, DEMO_MEMBERS[0]); // Yug (Org Admin)
+    safeSet(STORAGE_KEYS.LEADER_APPROVAL_AUTH, false);
+    safeSet(STORAGE_KEYS.AUDIT_LOGS, DEMO_AUDIT_LOGS);
     safeSet(STORAGE_KEYS.MEETINGS, DEMO_MEETINGS);
     safeSet(STORAGE_KEYS.DECISIONS, DEMO_DECISIONS);
     safeSet(STORAGE_KEYS.CONFLICTS, DEMO_CONFLICTS);
@@ -104,41 +118,301 @@ export class CommitOSStore {
     ]);
   }
 
-  static getOrganization(): Organization {
-    return safeGet<Organization>(STORAGE_KEYS.ORGANIZATION, DEMO_ORGANIZATION);
+  // ============================================================================
+  // RBAC & MULTI-ORGANIZATION IDENTITY MANAGEMENT
+  // ============================================================================
+
+  static getAllOrganizations(): Organization[] {
+    return safeGet<Organization[]>(STORAGE_KEYS.ORGANIZATIONS, DEMO_ORGANIZATIONS);
   }
 
-  static getMeetings(): Meeting[] {
-    return safeGet<Meeting[]>(STORAGE_KEYS.MEETINGS, DEMO_MEETINGS);
+  static getActiveOrgId(): string {
+    return safeGet<string>(STORAGE_KEYS.ACTIVE_ORG_ID, DEMO_ORGANIZATION.id);
+  }
+
+  static setActiveOrganization(orgId: string): void {
+    const orgs = this.getAllOrganizations();
+    const targetOrg = orgs.find((o) => o.id === orgId);
+    if (!targetOrg) return;
+
+    safeSet(STORAGE_KEYS.ACTIVE_ORG_ID, orgId);
+
+    // If current user does not belong to target organization, switch to that org's first member
+    const currentUser = this.getCurrentUser();
+    const belongs = targetOrg.members.some((m) => m.id === currentUser.id || m.email === currentUser.email);
+    if (!belongs && targetOrg.members.length > 0) {
+      safeSet(STORAGE_KEYS.CURRENT_USER, targetOrg.members[0]);
+    }
+
+    this.recalculateRisks();
+  }
+
+  static getOrganization(orgId?: string): Organization {
+    const targetId = orgId || this.getActiveOrgId();
+    const orgs = this.getAllOrganizations();
+    const found = orgs.find((o) => o.id === targetId);
+    return found || DEMO_ORGANIZATION;
+  }
+
+  static updateOrganization(partial: Partial<Organization>): void {
+    const actor = this.getCurrentUser();
+    if (!RBAC.canManageOrganization(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins can modify organization profile.');
+    }
+
+    const orgId = this.getActiveOrgId();
+    const orgs = this.getAllOrganizations();
+    const idx = orgs.findIndex((o) => o.id === orgId);
+    if (idx === -1) return;
+
+    orgs[idx] = { ...orgs[idx], ...partial };
+    safeSet(STORAGE_KEYS.ORGANIZATIONS, orgs);
+
+    this.addAuditLog({
+      organizationId: orgId,
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: 'ORGANIZATION_UPDATED',
+      entityType: 'organization',
+      entityId: orgId,
+      metadata: partial,
+    });
+  }
+
+  // Current active user persona
+  static getCurrentUser(): TeamMember {
+    const user = safeGet<TeamMember>(STORAGE_KEYS.CURRENT_USER, DEMO_MEMBERS[0]);
+    // Ensure active organization role alignment
+    const org = this.getOrganization();
+    const memberInOrg = org.members.find((m) => m.id === user.id || m.email === user.email);
+    if (memberInOrg) {
+      return memberInOrg;
+    }
+    return user;
+  }
+
+  static setCurrentUser(user: TeamMember): void {
+    safeSet(STORAGE_KEYS.CURRENT_USER, user);
+  }
+
+  // Leader authorization flag for conflict approval (controlled by Admin)
+  static isLeaderApprovalAuthorized(): boolean {
+    return safeGet<boolean>(STORAGE_KEYS.LEADER_APPROVAL_AUTH, false);
+  }
+
+  static setLeaderApprovalAuthorized(authorized: boolean): void {
+    const actor = this.getCurrentUser();
+    if (!RBAC.canManageOrganization(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins can authorize leader approval permissions.');
+    }
+    safeSet(STORAGE_KEYS.LEADER_APPROVAL_AUTH, authorized);
+
+    this.addAuditLog({
+      organizationId: this.getActiveOrgId(),
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: authorized ? 'LEADER_APPROVAL_AUTHORIZED' : 'LEADER_APPROVAL_REVOKED',
+      entityType: 'settings',
+      entityId: 'rbac-delegation',
+      metadata: { authorized },
+    });
+  }
+
+  // ============================================================================
+  // TEAM MEMBER MANAGEMENT
+  // ============================================================================
+
+  static getMembers(orgId?: string): TeamMember[] {
+    const org = this.getOrganization(orgId);
+    return org.members || [];
+  }
+
+  static inviteMember(data: { name: string; email: string; role: AppRole; title: string }): TeamMember {
+    const actor = this.getCurrentUser();
+    if (!RBAC.canManageMembers(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins can invite team members.');
+    }
+
+    const orgId = this.getActiveOrgId();
+    const orgs = this.getAllOrganizations();
+    const orgIndex = orgs.findIndex((o) => o.id === orgId);
+    if (orgIndex === -1) throw new Error('Organization not found.');
+
+    const newMember: TeamMember = {
+      id: `usr-${Date.now()}`,
+      userId: `uid-${Date.now()}`,
+      organizationId: orgId,
+      name: data.name.trim(),
+      email: data.email.trim().toLowerCase(),
+      role: data.role,
+      title: data.title.trim() || 'Team Contributor',
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(data.name)}`,
+      joinedAt: new Date().toISOString(),
+      status: 'active',
+    };
+
+    orgs[orgIndex].members = [...orgs[orgIndex].members, newMember];
+    safeSet(STORAGE_KEYS.ORGANIZATIONS, orgs);
+
+    this.addAuditLog({
+      organizationId: orgId,
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: 'MEMBER_INVITED',
+      entityType: 'member',
+      entityId: newMember.id,
+      metadata: { name: newMember.name, email: newMember.email, role: newMember.role, title: newMember.title },
+    });
+
+    return newMember;
+  }
+
+  static updateMemberRole(memberId: string, newRole: AppRole, newTitle?: string): void {
+    const actor = this.getCurrentUser();
+    if (!RBAC.canAssignRoles(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins can modify member roles.');
+    }
+
+    const orgId = this.getActiveOrgId();
+    const orgs = this.getAllOrganizations();
+    const orgIndex = orgs.findIndex((o) => o.id === orgId);
+    if (orgIndex === -1) return;
+
+    const memberIndex = orgs[orgIndex].members.findIndex((m) => m.id === memberId);
+    if (memberIndex === -1) return;
+
+    const oldRole = orgs[orgIndex].members[memberIndex].role;
+    orgs[orgIndex].members[memberIndex].role = newRole;
+    if (newTitle) {
+      orgs[orgIndex].members[memberIndex].title = newTitle;
+    }
+
+    safeSet(STORAGE_KEYS.ORGANIZATIONS, orgs);
+
+    // If updating currently logged in user, refresh current user state too
+    if (actor.id === memberId) {
+      this.setCurrentUser(orgs[orgIndex].members[memberIndex]);
+    }
+
+    this.addAuditLog({
+      organizationId: orgId,
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: 'ROLE_MODIFIED',
+      entityType: 'member',
+      entityId: memberId,
+      metadata: {
+        memberName: orgs[orgIndex].members[memberIndex].name,
+        oldRole,
+        newRole,
+        newTitle,
+      },
+    });
+  }
+
+  static removeMember(memberId: string): void {
+    const actor = this.getCurrentUser();
+    if (!RBAC.canManageMembers(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins can remove team members.');
+    }
+
+    const orgId = this.getActiveOrgId();
+    const orgs = this.getAllOrganizations();
+    const orgIndex = orgs.findIndex((o) => o.id === orgId);
+    if (orgIndex === -1) return;
+
+    const target = orgs[orgIndex].members.find((m) => m.id === memberId);
+    if (!target) return;
+
+    if (target.id === actor.id) {
+      throw new Error('Cannot remove yourself. Transfer admin role first.');
+    }
+
+    orgs[orgIndex].members = orgs[orgIndex].members.filter((m) => m.id !== memberId);
+    safeSet(STORAGE_KEYS.ORGANIZATIONS, orgs);
+
+    this.addAuditLog({
+      organizationId: orgId,
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: 'MEMBER_REMOVED',
+      entityType: 'member',
+      entityId: memberId,
+      metadata: { name: target.name, email: target.email, role: target.role },
+    });
+  }
+
+  // ============================================================================
+  // AUDIT LOGS
+  // ============================================================================
+
+  static getAuditLogs(orgId?: string): AuditLog[] {
+    const targetOrgId = orgId || this.getActiveOrgId();
+    const logs = safeGet<AuditLog[]>(STORAGE_KEYS.AUDIT_LOGS, DEMO_AUDIT_LOGS);
+    return logs.filter((l) => l.organizationId === targetOrgId);
+  }
+
+  static addAuditLog(entry: Omit<AuditLog, 'id' | 'createdAt'>): void {
+    const logs = safeGet<AuditLog[]>(STORAGE_KEYS.AUDIT_LOGS, DEMO_AUDIT_LOGS);
+    const newLog: AuditLog = {
+      ...entry,
+      id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      createdAt: new Date().toISOString(),
+    };
+    safeSet(STORAGE_KEYS.AUDIT_LOGS, [newLog, ...logs]);
+  }
+
+  // ============================================================================
+  // MEETINGS & INTELLIGENCE (ORGANIZATION-ISOLATED)
+  // ============================================================================
+
+  static getMeetings(orgId?: string): Meeting[] {
+    const targetOrgId = orgId || this.getActiveOrgId();
+    const meetings = safeGet<Meeting[]>(STORAGE_KEYS.MEETINGS, DEMO_MEETINGS);
+    return meetings.filter((m) => m.organizationId === targetOrgId);
   }
 
   static getMeetingById(id: string): Meeting | undefined {
-    const meetings = this.getMeetings();
+    const meetings = safeGet<Meeting[]>(STORAGE_KEYS.MEETINGS, DEMO_MEETINGS);
     return meetings.find((m) => m.id === id);
   }
 
   static addMeeting(meeting: Meeting): void {
-    const meetings = this.getMeetings();
-    const updated = [meeting, ...meetings];
-    safeSet(STORAGE_KEYS.MEETINGS, updated);
+    const actor = this.getCurrentUser();
+    if (!RBAC.canUploadMeetings(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins and Team Leaders can upload meetings.');
+    }
 
-    // Also register any extracted decisions
+    const orgId = this.getActiveOrgId();
+    const meetingWithOrg: Meeting = {
+      ...meeting,
+      organizationId: orgId,
+    };
+
+    const allMeetings = safeGet<Meeting[]>(STORAGE_KEYS.MEETINGS, DEMO_MEETINGS);
+    safeSet(STORAGE_KEYS.MEETINGS, [meetingWithOrg, ...allMeetings]);
+
     if (meeting.decisions && meeting.decisions.length > 0) {
-      const currentDecisions = this.getDecisions();
-      safeSet(STORAGE_KEYS.DECISIONS, [...meeting.decisions, ...currentDecisions]);
+      const currentDecisions = safeGet<Decision[]>(STORAGE_KEYS.DECISIONS, DEMO_DECISIONS);
+      const decisionsWithOrg = meeting.decisions.map((d) => ({ ...d, organizationId: orgId }));
+      safeSet(STORAGE_KEYS.DECISIONS, [...decisionsWithOrg, ...currentDecisions]);
     }
 
-    // Also register any extracted tasks
     if (meeting.actionItems && meeting.actionItems.length > 0) {
-      const currentTasks = this.getTasks();
-      safeSet(STORAGE_KEYS.TASKS, [...meeting.actionItems, ...currentTasks]);
+      const currentTasks = safeGet<Task[]>(STORAGE_KEYS.TASKS, DEMO_TASKS);
+      const tasksWithOrg = meeting.actionItems.map((t) => ({ ...t, organizationId: orgId }));
+      safeSet(STORAGE_KEYS.TASKS, [...tasksWithOrg, ...currentTasks]);
     }
 
-    // Register memories
     const newMemories: OrganizationalMemory[] = [
       {
         id: `mem-${Date.now()}`,
-        organizationId: meeting.organizationId,
+        organizationId: orgId,
         meetingId: meeting.id,
         meetingTitle: meeting.title,
         date: meeting.date.split('T')[0],
@@ -147,75 +421,90 @@ export class CommitOSStore {
         tags: [meeting.title.toLowerCase(), ...meeting.participants.map((p) => p.split(' ')[0].toLowerCase())],
       },
     ];
-    const currentMemories = this.getMemories();
+    const currentMemories = safeGet<OrganizationalMemory[]>(STORAGE_KEYS.MEMORIES, DEMO_MEMORIES);
     safeSet(STORAGE_KEYS.MEMORIES, [...newMemories, ...currentMemories]);
 
-    // Recalculate risks
+    this.addAuditLog({
+      organizationId: orgId,
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: 'MEETING_UPLOADED',
+      entityType: 'meeting',
+      entityId: meeting.id,
+      metadata: { title: meeting.title, decisionsCount: meeting.decisions?.length || 0 },
+    });
+
     this.recalculateRisks();
   }
 
-  static getDecisions(): Decision[] {
-    return safeGet<Decision[]>(STORAGE_KEYS.DECISIONS, DEMO_DECISIONS);
+  // ============================================================================
+  // DECISIONS & CONFLICT TRIAGE (SERVER/STORE ENFORCED RBAC)
+  // ============================================================================
+
+  static getDecisions(orgId?: string): Decision[] {
+    const targetOrgId = orgId || this.getActiveOrgId();
+    const decisions = safeGet<Decision[]>(STORAGE_KEYS.DECISIONS, DEMO_DECISIONS);
+    return decisions.filter((d) => d.organizationId === targetOrgId);
   }
 
   static getDecisionHistory(): DecisionHistoryItem[] {
     return safeGet<DecisionHistoryItem[]>(STORAGE_KEYS.DECISION_HISTORY, []);
   }
 
-  static updateDecision(id: string, partial: Partial<Decision>, actorName = 'Admin', reason = 'Manual update'): void {
-    const decisions = this.getDecisions();
-    const idx = decisions.findIndex((d) => d.id === id);
-    if (idx === -1) return;
-
-    const oldDecision = decisions[idx];
-    const updatedDecision = { ...oldDecision, ...partial };
-    decisions[idx] = updatedDecision;
-    safeSet(STORAGE_KEYS.DECISIONS, decisions);
-
-    // Record history
-    if (partial.value && partial.value !== oldDecision.value) {
-      const history = this.getDecisionHistory();
-      const newHistoryItem: DecisionHistoryItem = {
-        id: `hist-${Date.now()}`,
-        decisionId: id,
-        previousValue: oldDecision.value,
-        newValue: partial.value,
-        changedBy: actorName,
-        sourceMeetingId: oldDecision.meetingId,
-        sourceMeetingTitle: oldDecision.meetingTitle,
-        reason,
-        timestamp: new Date().toISOString(),
-      };
-      safeSet(STORAGE_KEYS.DECISION_HISTORY, [newHistoryItem, ...history]);
-    }
-  }
-
-  static getConflicts(): DecisionConflict[] {
-    return safeGet<DecisionConflict[]>(STORAGE_KEYS.CONFLICTS, DEMO_CONFLICTS);
+  static getConflicts(orgId?: string): DecisionConflict[] {
+    const targetOrgId = orgId || this.getActiveOrgId();
+    const conflicts = safeGet<DecisionConflict[]>(STORAGE_KEYS.CONFLICTS, DEMO_CONFLICTS);
+    return conflicts.filter((c) => c.organizationId === targetOrgId);
   }
 
   static addConflict(conflict: DecisionConflict): void {
-    const conflicts = this.getConflicts();
-    safeSet(STORAGE_KEYS.CONFLICTS, [conflict, ...conflicts]);
+    const orgId = this.getActiveOrgId();
+    const conflicts = safeGet<DecisionConflict[]>(STORAGE_KEYS.CONFLICTS, DEMO_CONFLICTS);
+    safeSet(STORAGE_KEYS.CONFLICTS, [{ ...conflict, organizationId: orgId }, ...conflicts]);
   }
 
   static resolveConflict(
     conflictId: string,
     action: ConflictStatus,
     resolutionNotes?: string,
-    actorName = 'Yug (Production Head)'
-  ): void {
-    const conflicts = this.getConflicts();
-    const conflict = conflicts.find((c) => c.id === conflictId);
-    if (!conflict) return;
+    actorOverride?: { id: string; name: string; role: AppRole }
+  ): { success: boolean; message: string } {
+    const actor = actorOverride || this.getCurrentUser();
+    const isLeaderAuth = this.isLeaderApprovalAuthorized();
+
+    if (action === 'approved') {
+      const perm = RBAC.canApproveDecisionConflict(actor.role, isLeaderAuth);
+      if (!perm.allowed) {
+        return {
+          success: false,
+          message: perm.reason || 'Forbidden: You do not have permission to approve official decision changes.',
+        };
+      }
+    } else if (action === 'rejected') {
+      if (!RBAC.canRejectDecisionConflict(actor.role)) {
+        return {
+          success: false,
+          message: 'Forbidden: Team Members cannot reject official decisions. Organization Admin or Team Leader required.',
+        };
+      }
+    }
+
+    const orgId = this.getActiveOrgId();
+    const allConflicts = safeGet<DecisionConflict[]>(STORAGE_KEYS.CONFLICTS, DEMO_CONFLICTS);
+    const conflict = allConflicts.find((c) => c.id === conflictId);
+    if (!conflict) {
+      return { success: false, message: 'Conflict not found.' };
+    }
 
     conflict.status = action;
-    safeSet(STORAGE_KEYS.CONFLICTS, [...conflicts]);
+    safeSet(STORAGE_KEYS.CONFLICTS, [...allConflicts]);
 
-    // If approved, update the original decision and mark previous as superseded
+    const actorDisplay = `${actor.name} (${actor.role === 'org_admin' ? 'Admin' : 'Leader'})`;
+
     if (action === 'approved') {
-      const decisions = this.getDecisions();
-      const prevDec = decisions.find((d) => d.id === conflict.previousDecisionId);
+      const allDecisions = safeGet<Decision[]>(STORAGE_KEYS.DECISIONS, DEMO_DECISIONS);
+      const prevDec = allDecisions.find((d) => d.id === conflict.previousDecisionId);
       if (prevDec) {
         const history = this.getDecisionHistory();
         history.unshift({
@@ -223,7 +512,7 @@ export class CommitOSStore {
           decisionId: prevDec.id,
           previousValue: prevDec.value,
           newValue: conflict.proposedValue,
-          changedBy: actorName,
+          changedBy: actorDisplay,
           sourceMeetingId: conflict.newMeetingId,
           sourceMeetingTitle: conflict.newMeetingTitle,
           reason: resolutionNotes || `Ratified change from ${conflict.newMeetingTitle}`,
@@ -233,54 +522,141 @@ export class CommitOSStore {
 
         prevDec.value = conflict.proposedValue;
         prevDec.status = 'approved';
-        safeSet(STORAGE_KEYS.DECISIONS, [...decisions]);
+        safeSet(STORAGE_KEYS.DECISIONS, [...allDecisions]);
       }
     } else if (action === 'rejected') {
-      // Keep previous decision as approved, mark the proposed decision as rejected
-      const decisions = this.getDecisions();
-      const proposedDec = decisions.find(
+      const allDecisions = safeGet<Decision[]>(STORAGE_KEYS.DECISIONS, DEMO_DECISIONS);
+      const proposedDec = allDecisions.find(
         (d) => d.meetingId === conflict.newMeetingId && d.value === conflict.proposedValue
       );
       if (proposedDec) {
         proposedDec.status = 'rejected';
-        safeSet(STORAGE_KEYS.DECISIONS, [...decisions]);
+        safeSet(STORAGE_KEYS.DECISIONS, [...allDecisions]);
       }
     }
 
+    this.addAuditLog({
+      organizationId: orgId,
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: `CONFLICT_${action.toUpperCase()}`,
+      entityType: 'conflict',
+      entityId: conflictId,
+      metadata: {
+        action,
+        previousValue: conflict.previousValue,
+        proposedValue: conflict.proposedValue,
+        notes: resolutionNotes,
+      },
+    });
+
     this.recalculateRisks();
+    return { success: true, message: `Conflict successfully updated to ${action}.` };
   }
 
-  static getTasks(): Task[] {
-    return safeGet<Task[]>(STORAGE_KEYS.TASKS, DEMO_TASKS);
+  // ============================================================================
+  // TASKS & EXECUTION (RBAC ENFORCED)
+  // ============================================================================
+
+  static getTasks(orgId?: string): Task[] {
+    const targetOrgId = orgId || this.getActiveOrgId();
+    const tasks = safeGet<Task[]>(STORAGE_KEYS.TASKS, DEMO_TASKS);
+    return tasks.filter((t) => t.organizationId === targetOrgId);
   }
 
   static addTask(task: Task): void {
-    const tasks = this.getTasks();
-    safeSet(STORAGE_KEYS.TASKS, [task, ...tasks]);
+    const actor = this.getCurrentUser();
+    if (!RBAC.canCreateTasks(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins and Team Leaders can create and assign tasks.');
+    }
+
+    const orgId = this.getActiveOrgId();
+    const taskWithOrg: Task = { ...task, organizationId: orgId };
+    const allTasks = safeGet<Task[]>(STORAGE_KEYS.TASKS, DEMO_TASKS);
+    safeSet(STORAGE_KEYS.TASKS, [taskWithOrg, ...allTasks]);
+
+    this.addAuditLog({
+      organizationId: orgId,
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: 'TASK_CREATED',
+      entityType: 'task',
+      entityId: task.id,
+      metadata: { title: task.title, assignee: task.assigneeName, priority: task.priority },
+    });
+
     this.recalculateRisks();
   }
 
   static updateTask(id: string, partial: Partial<Task>): void {
-    const tasks = this.getTasks();
-    const idx = tasks.findIndex((t) => t.id === id);
+    const actor = this.getCurrentUser();
+    // All members can update status. But editing details/assignee requires Admin or Leader
+    const isOnlyStatusChange = Object.keys(partial).every((k) => k === 'status' || k === 'completedAt');
+    if (!isOnlyStatusChange && !RBAC.canCreateTasks(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins and Team Leaders can edit task assignments and details.');
+    }
+
+    const allTasks = safeGet<Task[]>(STORAGE_KEYS.TASKS, DEMO_TASKS);
+    const idx = allTasks.findIndex((t) => t.id === id);
     if (idx === -1) return;
 
-    if (partial.status === 'completed' && tasks[idx].status !== 'completed') {
+    if (partial.status === 'completed' && allTasks[idx].status !== 'completed') {
       partial.completedAt = new Date().toISOString();
     }
-    tasks[idx] = { ...tasks[idx], ...partial };
-    safeSet(STORAGE_KEYS.TASKS, tasks);
+    allTasks[idx] = { ...allTasks[idx], ...partial };
+    safeSet(STORAGE_KEYS.TASKS, allTasks);
+
+    this.addAuditLog({
+      organizationId: allTasks[idx].organizationId,
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: 'TASK_UPDATED',
+      entityType: 'task',
+      entityId: id,
+      metadata: partial,
+    });
+
     this.recalculateRisks();
   }
 
   static deleteTask(id: string): void {
-    const tasks = this.getTasks().filter((t) => t.id !== id);
-    safeSet(STORAGE_KEYS.TASKS, tasks);
+    const actor = this.getCurrentUser();
+    if (!RBAC.canDeleteTasks(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins and Team Leaders can delete tasks.');
+    }
+
+    const allTasks = safeGet<Task[]>(STORAGE_KEYS.TASKS, DEMO_TASKS);
+    const target = allTasks.find((t) => t.id === id);
+    const filtered = allTasks.filter((t) => t.id !== id);
+    safeSet(STORAGE_KEYS.TASKS, filtered);
+
+    if (target) {
+      this.addAuditLog({
+        organizationId: target.organizationId,
+        actorId: actor.id,
+        actorName: actor.name,
+        actorRole: actor.role,
+        action: 'TASK_DELETED',
+        entityType: 'task',
+        entityId: id,
+        metadata: { title: target.title },
+      });
+    }
+
     this.recalculateRisks();
   }
 
-  static getMemories(): OrganizationalMemory[] {
-    return safeGet<OrganizationalMemory[]>(STORAGE_KEYS.MEMORIES, DEMO_MEMORIES);
+  // ============================================================================
+  // ORGANIZATIONAL MEMORY & RISKS
+  // ============================================================================
+
+  static getMemories(orgId?: string): OrganizationalMemory[] {
+    const targetOrgId = orgId || this.getActiveOrgId();
+    const memories = safeGet<OrganizationalMemory[]>(STORAGE_KEYS.MEMORIES, DEMO_MEMORIES);
+    return memories.filter((m) => m.organizationId === targetOrgId);
   }
 
   static searchMemories(query: string): OrganizationalMemory[] {
@@ -296,11 +672,14 @@ export class CommitOSStore {
     );
   }
 
-  static getRisks(): ExecutionRisk[] {
-    return safeGet<ExecutionRisk[]>(STORAGE_KEYS.RISKS, DEMO_RISKS);
+  static getRisks(orgId?: string): ExecutionRisk[] {
+    const targetOrgId = orgId || this.getActiveOrgId();
+    const risks = safeGet<ExecutionRisk[]>(STORAGE_KEYS.RISKS, DEMO_RISKS);
+    return risks.filter((r) => r.organizationId === targetOrgId);
   }
 
   static recalculateRisks(): ExecutionRisk[] {
+    const orgId = this.getActiveOrgId();
     const tasks = this.getTasks();
     const conflicts = this.getConflicts();
     const pendingConflicts = conflicts.filter((c) => c.status === 'pending');
@@ -318,7 +697,7 @@ export class CommitOSStore {
     if (pendingConflicts.length > 0) {
       generatedRisks.push({
         id: `risk-conf-${Date.now()}`,
-        organizationId: DEMO_ORGANIZATION.id,
+        organizationId: orgId,
         level: 'HIGH',
         title: 'Unresolved Decision Conflict Causing Execution Ambiguity',
         reason: `Pending conflict: "${pendingConflicts[0].previousValue}" vs proposed "${pendingConflicts[0].proposedValue}". Downstream tasks cannot proceed without date certainty.`,
@@ -330,7 +709,7 @@ export class CommitOSStore {
     } else if (overdueTasks.length > 0) {
       generatedRisks.push({
         id: `risk-overdue-${Date.now()}`,
-        organizationId: DEMO_ORGANIZATION.id,
+        organizationId: orgId,
         level: 'MEDIUM',
         title: `${overdueTasks.length} Overdue Action Items Requiring Attention`,
         reason: `Tasks past their deadline: ${overdueTasks.map((t) => t.title).join(', ')}.`,
@@ -342,36 +721,57 @@ export class CommitOSStore {
     } else {
       generatedRisks.push({
         id: `risk-low-${Date.now()}`,
-        organizationId: DEMO_ORGANIZATION.id,
+        organizationId: orgId,
         level: 'LOW',
         title: 'Execution On Track',
-        reason: 'All conflicts resolved and high priority tasks are progressing towards the target event date.',
+        reason: 'All conflicts resolved and high priority tasks are progressing towards the target milestones.',
         affectedTaskTitles: [],
-        potentialImpact: 'Minimal risk detected across current club milestones.',
+        potentialImpact: 'Minimal risk detected across current organization milestones.',
         recommendedAction: 'Maintain weekly sync schedule.',
         detectedAt: new Date().toISOString(),
       });
     }
 
-    safeSet(STORAGE_KEYS.RISKS, generatedRisks);
+    const allRisks = safeGet<ExecutionRisk[]>(STORAGE_KEYS.RISKS, DEMO_RISKS).filter(
+      (r) => r.organizationId !== orgId
+    );
+    safeSet(STORAGE_KEYS.RISKS, [...generatedRisks, ...allRisks]);
     return generatedRisks;
   }
+
+  // ============================================================================
+  // SETTINGS & CHAT
+  // ============================================================================
 
   static getSettings(): AppSettings {
     return safeGet<AppSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
   }
 
   static saveSettings(settings: AppSettings): void {
+    const actor = this.getCurrentUser();
+    if (!RBAC.canManageSettings(actor.role)) {
+      throw new Error('Forbidden: Only Organization Admins can modify settings.');
+    }
     safeSet(STORAGE_KEYS.SETTINGS, settings);
+
+    this.addAuditLog({
+      organizationId: this.getActiveOrgId(),
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: 'SETTINGS_UPDATED',
+      entityType: 'settings',
+      entityId: 'global',
+    });
   }
 
   static getChatMessages(): ChatMessage[] {
+    const org = this.getOrganization();
     return safeGet<ChatMessage[]>(STORAGE_KEYS.CHAT_MESSAGES, [
       {
         id: 'msg-welcome',
         role: 'assistant',
-        content:
-          'Hello! I am CommitOS, your AI organizational memory assistant. Ask me anything about previous SVIT Podcast Club meetings, approved budgets, task assignments, or decision history.',
+        content: `Hello! I am CommitOS, your AI organizational memory assistant for ${org.name}. Ask me anything about previous meetings, approved budgets, task assignments, or decision history.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);

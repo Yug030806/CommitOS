@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -15,22 +15,33 @@ import {
   ShieldAlert,
   Radio,
   ExternalLink,
+  Building,
+  Check,
+  Users,
 } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
-import { Organization, DecisionConflict, ExecutionRisk } from '@/lib/types';
+import { Organization, DecisionConflict, ExecutionRisk, TeamMember } from '@/lib/types';
+import { ROLE_DEFINITIONS } from '@/lib/rbac';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [org, setOrg] = useState<Organization | null>(null);
+  const [allOrgs, setAllOrgs] = useState<Organization[]>([]);
   const [pendingConflicts, setPendingConflicts] = useState<DecisionConflict[]>([]);
   const [risks, setRisks] = useState<ExecutionRisk[]>([]);
   const [isLiveAI, setIsLiveAI] = useState(false);
+  const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<TeamMember>(() => CommitOSStore.getCurrentUser());
+
+  const orgDropdownRef = useRef<HTMLDivElement>(null);
 
   const refreshState = () => {
     setOrg(CommitOSStore.getOrganization());
+    setAllOrgs(CommitOSStore.getAllOrganizations());
     const conflicts = CommitOSStore.getConflicts().filter((c) => c.status === 'pending');
     setPendingConflicts(conflicts);
     setRisks(CommitOSStore.getRisks());
+    setCurrentUser(CommitOSStore.getCurrentUser());
     const settings = CommitOSStore.getSettings();
     setIsLiveAI(Boolean(settings.geminiApiKey));
   };
@@ -40,6 +51,21 @@ export default function Sidebar() {
     window.addEventListener('commitos_storage_updated', refreshState);
     return () => window.removeEventListener('commitos_storage_updated', refreshState);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (orgDropdownRef.current && !orgDropdownRef.current.contains(e.target as Node)) {
+        setIsOrgDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectOrg = (orgId: string) => {
+    CommitOSStore.setActiveOrganization(orgId);
+    setIsOrgDropdownOpen(false);
+  };
 
   const navItems = [
     {
@@ -75,14 +101,14 @@ export default function Sidebar() {
       badge: null,
     },
     {
-      name: 'Settings',
+      name: 'Settings & Team',
       href: '/settings',
       icon: Settings,
       badge: null,
     },
   ];
 
-  const highRisk = risks.find((r) => r.level === 'HIGH');
+  const roleDef = ROLE_DEFINITIONS[currentUser.role] || ROLE_DEFINITIONS.team_member;
 
   return (
     <aside className="w-64 h-screen bg-[#0d0d11] border-r border-[#1f1f27] flex flex-col justify-between select-none fixed left-0 top-0 z-40">
@@ -97,7 +123,7 @@ export default function Sidebar() {
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-white text-base tracking-tight">CommitOS</span>
                 <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
-                  Agentic
+                  RBAC
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400 font-normal">AI Decision & Execution</p>
@@ -105,25 +131,68 @@ export default function Sidebar() {
           </Link>
         </div>
 
-        {/* Organization Switcher Dropdown */}
-        <div className="p-3 border-b border-[#1a1a22]">
-          <div className="flex items-center justify-between p-2 rounded-lg bg-[#14141a] border border-[#23232e] text-xs">
+        {/* Organization Switcher Dropdown (Multi-Tenant Isolation) */}
+        <div className="p-3 border-b border-[#1a1a22] relative" ref={orgDropdownRef}>
+          <button
+            onClick={() => setIsOrgDropdownOpen(!isOrgDropdownOpen)}
+            className="w-full flex items-center justify-between p-2 rounded-lg bg-[#14141a] hover:bg-[#1a1a24] border border-[#23232e] text-xs transition-colors text-left"
+          >
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-5 h-5 rounded-md bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-white border border-zinc-700">
-                S
+              <div className="w-6 h-6 rounded-md bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-white border border-zinc-700 shrink-0">
+                {org?.name ? org.name[0] : 'O'}
               </div>
-              <div className="truncate">
-                <p className="font-semibold text-zinc-200 truncate">{org?.name || 'SVIT Podcast Club'}</p>
-                <p className="text-[10px] text-zinc-500">4 Active Members</p>
+              <div className="truncate min-w-0">
+                <p className="font-semibold text-zinc-200 truncate text-xs">{org?.name || 'Select Organization'}</p>
+                <p className="text-[10px] text-zinc-500">{org?.members?.length || 0} Members • Isolated</p>
               </div>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-          </div>
+          </button>
+
+          {isOrgDropdownOpen && (
+            <div className="absolute left-3 right-3 top-14 bg-[#14141d] border border-[#2c2c3b] rounded-xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-1">
+              <div className="px-2 py-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+                Select Organization
+              </div>
+              <div className="space-y-1 mt-1">
+                {allOrgs.map((o) => {
+                  const isSelected = o.id === org?.id;
+                  return (
+                    <button
+                      key={o.id}
+                      onClick={() => handleSelectOrg(o.id)}
+                      className={`w-full flex items-center justify-between p-2 rounded-lg text-xs transition-colors text-left ${
+                        isSelected
+                          ? 'bg-zinc-800 text-white font-semibold'
+                          : 'text-zinc-300 hover:bg-[#1c1c28]'
+                      }`}
+                    >
+                      <div className="min-w-0 pr-2">
+                        <p className="truncate text-xs">{o.name}</p>
+                        <p className="text-[10px] text-zinc-500 truncate">{o.members.length} members</p>
+                      </div>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-2 pt-2 border-t border-[#252533] px-1">
+                <Link
+                  href="/settings?tab=team"
+                  onClick={() => setIsOrgDropdownOpen(false)}
+                  className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1.5 py-1"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Team Management</span>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Signature Conflict Notification Banner if any */}
         {pendingConflicts.length > 0 && (
-          <div className="mx-3 mt-3 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs flex items-start gap-2 animate-pulse-subtle">
+          <div className="mx-3 mt-3 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs flex items-start gap-2">
             <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
             <div className="min-w-0">
               <p className="font-semibold text-amber-300 text-[11px]">Conflict Detected</p>
@@ -168,7 +237,7 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      {/* Footer Area: AI Mode Status & User Profile */}
+      {/* Footer Area: AI Mode Status & Current User Identity */}
       <div className="p-3 border-t border-[#1f1f27] space-y-2 bg-[#0a0a0e]">
         {/* Live Engine Indicator */}
         <div className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#121217] border border-[#21212a] text-[11px]">
@@ -181,19 +250,24 @@ export default function Sidebar() {
           </Link>
         </div>
 
-        {/* User Profile Card */}
+        {/* User Identity Card with Role Badge */}
         <div className="flex items-center gap-2.5 p-2 rounded-lg bg-[#14141a] border border-[#22222d]">
-          <div className="w-8 h-8 rounded-full overflow-hidden border border-zinc-700 shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&crop=face"
-              alt="Yug"
-              className="w-full h-full object-cover"
-            />
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-800 border border-zinc-700 shrink-0 flex items-center justify-center text-xs font-bold text-white">
+            {currentUser.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
+            ) : (
+              currentUser.name[0]
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-zinc-100 truncate">Yug Patel</p>
-            <p className="text-[10px] text-zinc-400 truncate">Production Head • Lead</p>
+            <div className="flex items-center justify-between gap-1">
+              <p className="text-xs font-semibold text-zinc-100 truncate">{currentUser.name}</p>
+              <span className={`text-[9px] px-1 py-0.2 rounded font-mono border shrink-0 ${roleDef.badgeClass}`}>
+                {roleDef.badgeLabel}
+              </span>
+            </div>
+            <p className="text-[10px] text-zinc-400 truncate">{currentUser.title}</p>
           </div>
         </div>
       </div>

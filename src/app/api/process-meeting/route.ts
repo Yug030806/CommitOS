@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeMeetingWithGemini, detectConflictsWithGemini } from '@/lib/gemini';
-import { Meeting, Decision, Task, TranscriptItem } from '@/lib/types';
+import { Meeting, Decision, Task, TranscriptItem, AppRole } from '@/lib/types';
+import { RBAC } from '@/lib/rbac';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +13,29 @@ export async function POST(req: NextRequest) {
       historicalDecisions = [],
       apiKey,
       model = 'gemini-1.5-flash',
-    } = body;
+      actorRole,
+      organizationId = 'org-svit-podcast',
+    } = body as {
+      transcript?: string;
+      title?: string;
+      date?: string;
+      historicalDecisions?: any[];
+      apiKey?: string;
+      model?: string;
+      actorRole?: AppRole;
+      organizationId?: string;
+    };
+
+    // SERVER-SIDE RBAC ENFORCEMENT: AI agents and upload requests cannot bypass permissions
+    if (actorRole && !RBAC.canUploadMeetings(actorRole)) {
+      return NextResponse.json(
+        {
+          error: 'Security Violation: Unauthorized Meeting Upload.',
+          reason: 'Team Members have read-only access to organizational meetings. Only Organization Admins and Team Leaders can upload and process meetings.',
+        },
+        { status: 403 }
+      );
+    }
 
     if (!transcript.trim()) {
       return NextResponse.json({ error: 'Transcript content is required.' }, { status: 400 });
@@ -27,7 +50,7 @@ export async function POST(req: NextRequest) {
     // Step 2: Extract Decisions with IDs
     const decisions: Decision[] = analysis.decisions.map((d, index) => ({
       id: `dec-${Date.now()}-${index}`,
-      organizationId: 'org-svit-podcast',
+      organizationId,
       meetingId,
       meetingTitle,
       title: d.title,

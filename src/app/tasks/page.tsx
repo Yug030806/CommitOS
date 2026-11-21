@@ -19,8 +19,9 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
-import { Task, TaskPriority, TaskStatus } from '@/lib/types';
-import { DEMO_MEMBERS } from '@/lib/demo-data';
+import { Task, TaskPriority, TaskStatus, TeamMember } from '@/lib/types';
+import { RBAC, ROLE_DEFINITIONS } from '@/lib/rbac';
+import { Lock, ShieldCheck } from 'lucide-react';
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -29,11 +30,13 @@ export default function TasksPage() {
   const [assigneeFilter, setAssigneeFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<TeamMember>(() => CommitOSStore.getCurrentUser());
+  const [members, setMembers] = useState<TeamMember[]>(() => CommitOSStore.getMembers());
 
   // New task form state
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
-  const [newAssignee, setNewAssignee] = useState(DEMO_MEMBERS[0].name);
+  const [newAssignee, setNewAssignee] = useState(members[0]?.name || 'Yug');
   const [newDeadline, setNewDeadline] = useState(
     new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0]
   );
@@ -41,6 +44,8 @@ export default function TasksPage() {
 
   const loadTasks = () => {
     setTasks(CommitOSStore.getTasks());
+    setCurrentUser(CommitOSStore.getCurrentUser());
+    setMembers(CommitOSStore.getMembers());
   };
 
   useEffect(() => {
@@ -49,28 +54,39 @@ export default function TasksPage() {
     return () => window.removeEventListener('commitos_storage_updated', loadTasks);
   }, []);
 
+  const canCreate = RBAC.canCreateTasks(currentUser.role);
+  const canDelete = RBAC.canDeleteTasks(currentUser.role);
+
   const handleUpdateStatus = (id: string, status: TaskStatus) => {
     CommitOSStore.updateTask(id, { status });
     loadTasks();
   };
 
   const handleDeleteTask = (id: string) => {
+    if (!canDelete) {
+      alert('Only Organization Admins and Team Leaders can delete tasks.');
+      return;
+    }
     CommitOSStore.deleteTask(id);
     loadTasks();
   };
 
   const handleCreateTask = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canCreate) {
+      alert('Only Organization Admins and Team Leaders can create and assign tasks.');
+      return;
+    }
     if (!newTitle.trim()) return;
 
-    const member = DEMO_MEMBERS.find((m) => m.name === newAssignee);
+    const member = members.find((m) => m.name === newAssignee);
     const newTask: Task = {
       id: `task-${Date.now()}`,
-      organizationId: 'org-svit-podcast',
+      organizationId: CommitOSStore.getActiveOrgId(),
       title: newTitle.trim(),
       description: newDesc.trim() || 'Custom organizational task',
       assigneeName: newAssignee,
-      assigneeRole: member?.role || 'Team Member',
+      assigneeRole: member?.title || 'Team Contributor',
       deadline: newDeadline,
       priority: newPriority,
       status: 'todo',
@@ -153,13 +169,23 @@ export default function TasksPage() {
             </button>
           </div>
 
-          <button
-            onClick={() => setIsAddOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors shadow"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Add Task</span>
-          </button>
+          {canCreate ? (
+            <button
+              onClick={() => setIsAddOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-colors shadow"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Add Task</span>
+            </button>
+          ) : (
+            <div
+              title="Creating and assigning tasks requires Organization Admin or Team Leader privileges"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/60 text-zinc-500 border border-zinc-800 text-xs cursor-not-allowed"
+            >
+              <Lock className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Add Task (Leader/Admin)</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -177,6 +203,19 @@ export default function TasksPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Quick Toggle: My Assigned Tasks */}
+          <button
+            onClick={() => setAssigneeFilter(assigneeFilter === currentUser.name ? 'all' : currentUser.name)}
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center gap-1.5 ${
+              assigneeFilter === currentUser.name
+                ? 'bg-zinc-800 text-white border-zinc-600'
+                : 'bg-[#14141a] text-zinc-400 hover:text-white border-[#23232e]'
+            }`}
+          >
+            <span>Assigned to Me</span>
+            {assigneeFilter === currentUser.name && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+          </button>
+
           {/* Member Filter */}
           <select
             value={assigneeFilter}
@@ -184,9 +223,9 @@ export default function TasksPage() {
             className="px-2.5 py-1.5 rounded-lg bg-[#14141a] border border-[#23232e] text-xs text-zinc-300 focus:outline-none"
           >
             <option value="all">All Assignees</option>
-            {DEMO_MEMBERS.map((m) => (
+            {members.map((m) => (
               <option key={m.id} value={m.name}>
-                {m.name} ({m.role})
+                {m.name} ({m.title})
               </option>
             ))}
           </select>
@@ -246,13 +285,15 @@ export default function TasksPage() {
                           {task.priority}
                         </span>
 
-                        <button
-                          onClick={() => handleDeleteTask(task.id)}
-                          className="text-zinc-600 hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100"
-                          title="Delete task"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="text-zinc-600 hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100"
+                            title="Delete task"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
 
                       <div>
@@ -369,12 +410,15 @@ export default function TasksPage() {
                 </div>
 
                 <div className="col-span-1 text-right">
-                  <button
-                    onClick={() => handleDeleteTask(t.id)}
-                    className="text-zinc-600 hover:text-rose-400 transition-colors p-1"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={() => handleDeleteTask(t.id)}
+                      className="text-zinc-600 hover:text-rose-400 transition-colors p-1"
+                      title="Delete task"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -489,9 +533,9 @@ export default function TasksPage() {
                     onChange={(e) => setNewAssignee(e.target.value)}
                     className="w-full px-2.5 py-2 rounded-lg bg-[#16161d] border border-[#262633] text-xs text-white focus:outline-none"
                   >
-                    {DEMO_MEMBERS.map((m) => (
+                    {members.map((m) => (
                       <option key={m.id} value={m.name}>
-                        {m.name} ({m.role})
+                        {m.name} ({m.title})
                       </option>
                     ))}
                   </select>
