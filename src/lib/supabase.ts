@@ -78,3 +78,82 @@ export const SupabaseAuth = {
     return client.auth.signOut();
   },
 };
+
+export const SupabaseDB = {
+  async getMeetings(orgId: string = 'org-svit-podcast') {
+    const client = getSupabaseClient();
+    if (!client) return [];
+    const { data, error } = await client.from('meetings').select('*').eq('organization_id', orgId);
+    if (error) {
+      console.warn('Supabase fetch meetings error:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  async getDecisions(orgId: string = 'org-svit-podcast') {
+    const client = getSupabaseClient();
+    if (!client) return [];
+    const { data, error } = await client.from('decisions').select('*').eq('organization_id', orgId);
+    if (error) {
+      console.warn('Supabase fetch decisions error:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  async getTasks(orgId: string = 'org-svit-podcast') {
+    const client = getSupabaseClient();
+    if (!client) return [];
+    const { data, error } = await client.from('tasks').select('*').eq('organization_id', orgId);
+    if (error) {
+      console.warn('Supabase fetch tasks error:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  async getConflicts(orgId: string = 'org-svit-podcast') {
+    const client = getSupabaseClient();
+    if (!client) return [];
+    const { data, error } = await client.from('decision_conflicts').select('*').eq('organization_id', orgId);
+    if (error) {
+      console.warn('Supabase fetch conflicts error:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  async getAuditLogs(orgId: string = 'org-svit-podcast') {
+    const client = getSupabaseClient();
+    if (!client) return [];
+    const { data, error } = await client
+      .from('audit_logs')
+      .select('*')
+      .eq('organization_id', orgId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Supabase fetch audit logs error:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  async insertTask(task: any) {
+    const client = getSupabaseClient();
+    if (!client) return;
+    return client.from('tasks').insert(task);
+  },
+
+  async updateTaskStatus(taskId: string, status: string) {
+    const client = getSupabaseClient();
+    if (!client) return;
+    return client.from('tasks').update({ status }).eq('id', taskId);
+  },
+
+  async insertAuditLog(log: any) {
+    const client = getSupabaseClient();
+    if (!client) return;
+    return client.from('audit_logs').insert(log);
+  },
+};
