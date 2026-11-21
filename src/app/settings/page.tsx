@@ -44,6 +44,12 @@ function SettingsContent() {
   const [isEditingAssemblyKey, setIsEditingAssemblyKey] = useState(false);
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [isTestingSupabase, setIsTestingSupabase] = useState(false);
+  const [supabaseTestResult, setSupabaseTestResult] = useState<{
+    success: boolean;
+    message: string;
+    tablesReady?: boolean;
+  } | null>(null);
   const [isSaved, setIsSaved] = useState(false);
 
   // RBAC & Team state
@@ -134,6 +140,38 @@ function SettingsContent() {
       });
     } finally {
       setIsTestingKey(false);
+    }
+  };
+
+  // Test Supabase Database Connection
+  const handleTestSupabase = async () => {
+    setIsTestingSupabase(true);
+    setSupabaseTestResult(null);
+
+    try {
+      const res = await fetch('/api/supabase/status');
+      const data = await res.json();
+      if (data.connected) {
+        setSupabaseTestResult({
+          success: true,
+          tablesReady: data.tablesReady,
+          message: data.message,
+        });
+      } else {
+        setSupabaseTestResult({
+          success: false,
+          tablesReady: false,
+          message: data.error || data.message || 'Failed to connect to Supabase project.',
+        });
+      }
+    } catch (err: any) {
+      setSupabaseTestResult({
+        success: false,
+        tablesReady: false,
+        message: 'Network error contacting Supabase status endpoint.',
+      });
+    } finally {
+      setIsTestingSupabase(false);
     }
   };
 
@@ -773,7 +811,8 @@ function SettingsContent() {
             </div>
 
             {canManageOrg ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-300 mb-1">Supabase Project URL</label>
                   <input
@@ -828,7 +867,47 @@ function SettingsContent() {
                   )}
                 </div>
               </div>
-            ) : (
+
+              {/* Supabase Test Connection & Table Readiness Status */}
+              <div className="pt-3 border-t border-[#1e1e28] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="text-xs">
+                  {supabaseTestResult ? (
+                    <div className={`flex items-start gap-2 ${supabaseTestResult.tablesReady ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {supabaseTestResult.tablesReady ? (
+                        <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                      )}
+                      <div>
+                        <p className="font-semibold">{supabaseTestResult.tablesReady ? 'Supabase Database Connected' : 'Schema Pending Execution'}</p>
+                        <p className="text-[11px] text-zinc-400 mt-0.5">{supabaseTestResult.message}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-zinc-500 font-mono">
+                      Target: Supabase PostgreSQL with pgvector &amp; RLS
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleTestSupabase}
+                  disabled={isTestingSupabase}
+                  className="px-3.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white border border-zinc-700 transition-colors shrink-0 flex items-center gap-1.5"
+                >
+                  {isTestingSupabase ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Checking...</span>
+                    </>
+                  ) : (
+                    <span>Test Supabase Connection</span>
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
               <div className="p-3 rounded-lg bg-[#15151c] border border-zinc-800 text-xs text-zinc-400 flex items-center gap-2">
                 <Lock className="w-4 h-4 text-zinc-500" />
                 <span>Supabase credentials are concealed from non-admin accounts.</span>
