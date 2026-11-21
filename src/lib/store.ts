@@ -185,10 +185,21 @@ export class CommitOSStore {
   static isAuthenticated(): boolean {
     if (typeof window === 'undefined') return true;
     const authUser = safeGet<TeamMember | null>(STORAGE_KEYS.AUTH_USER, null);
-    return Boolean(authUser);
+    if (!authUser) {
+      const isLoggedOut = safeGet<boolean>('commitos_is_logged_out', false);
+      if (!isLoggedOut) {
+        const defaultAdmin = DEMO_MEMBERS[0];
+        safeSet(STORAGE_KEYS.AUTH_USER, defaultAdmin);
+        safeSet(STORAGE_KEYS.CURRENT_USER, defaultAdmin);
+        return true;
+      }
+      return false;
+    }
+    return true;
   }
 
   static login(user: TeamMember): void {
+    safeSet('commitos_is_logged_out', false);
     safeSet(STORAGE_KEYS.AUTH_USER, user);
     safeSet(STORAGE_KEYS.CURRENT_USER, user);
     if (user.organizationId) {
@@ -219,6 +230,7 @@ export class CommitOSStore {
         entityId: actor.id,
       });
     }
+    safeSet('commitos_is_logged_out', true);
     safeSet(STORAGE_KEYS.AUTH_USER, null);
   }
 

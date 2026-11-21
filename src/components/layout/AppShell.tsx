@@ -9,36 +9,33 @@ import { CommitOSStore } from '@/lib/store';
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  const checkAuth = () => {
-    const authed = CommitOSStore.isAuthenticated();
-    setIsAuthenticated(authed);
-    if (!authed && pathname !== '/signin' && pathname !== '/signup') {
-      router.replace('/signin');
-    }
-  };
+  const isAuthRoute = pathname === '/signin' || pathname === '/signup';
+  const [isClient, setIsClient] = useState(false);
+  const [authed, setAuthed] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-    window.addEventListener('commitos_storage_updated', checkAuth);
-    return () => window.removeEventListener('commitos_storage_updated', checkAuth);
-  }, [pathname]);
+    setIsClient(true);
+    const authedState = CommitOSStore.isAuthenticated();
+    setAuthed(authedState);
 
-  const isAuthRoute = pathname === '/signin' || pathname === '/signup';
+    if (!authedState && !isAuthRoute) {
+      window.location.replace('/signin');
+    }
+  }, [pathname, isAuthRoute]);
 
   // Auth pages render without shell
   if (isAuthRoute) {
     return <main className="min-h-screen w-full bg-[#09090b]">{children}</main>;
   }
 
-  // Loading state while checking authentication
-  if (isAuthenticated !== true) {
+  // If user explicitly logged out and on protected page
+  if (isClient && !authed) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-xs text-zinc-500">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
-          <span>Verifying Role Access...</span>
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-xs text-zinc-400">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-[#121217] border border-zinc-800 shadow-xl">
+          <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+          <span>Redirecting to Role Authentication...</span>
+          <a href="/signin" className="underline text-white font-medium ml-2">Click to Enter</a>
         </div>
       </div>
     );
