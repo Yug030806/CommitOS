@@ -561,6 +561,22 @@ export class CommitOSStore {
     conflict.status = action;
     safeSet(STORAGE_KEYS.CONFLICTS, [...allConflicts]);
 
+    // Also update the source meeting: clear conflictDetected and set status to 'processed' if no other pending conflicts remain
+    const allMeetings = safeGet<Meeting[]>(STORAGE_KEYS.MEETINGS, DEMO_MEETINGS);
+    const meeting = allMeetings.find((m) => m.id === conflict.newMeetingId);
+    if (meeting) {
+      const otherPending = allConflicts.filter(
+        (c) => c.newMeetingId === meeting.id && c.id !== conflictId && c.status === 'pending'
+      );
+      if (otherPending.length === 0) {
+        meeting.conflictDetected = false;
+        if (meeting.status === 'needs_review') {
+          meeting.status = 'processed';
+        }
+      }
+      safeSet(STORAGE_KEYS.MEETINGS, [...allMeetings]);
+    }
+
     const actorDisplay = `${actor.name} (${actor.role === 'org_admin' ? 'Admin' : 'Leader'})`;
 
     if (action === 'approved') {

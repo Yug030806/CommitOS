@@ -146,7 +146,10 @@ export default function MeetingDetailPage({ params }: PageProps) {
           { key: 'tasks', label: `Action Items (${meeting.actionItems.length})`, icon: CheckSquare },
           {
             key: 'insights',
-            label: conflicts.length > 0 ? `AI Insights (${conflicts.length} Conflict)` : 'AI Insights',
+            label:
+              conflicts.filter((c) => c.status === 'pending').length > 0
+                ? `AI Insights (${conflicts.filter((c) => c.status === 'pending').length} Conflict)`
+                : 'AI Insights',
             icon: Sparkles,
             highlight: conflicts.some((c) => c.status === 'pending'),
           },

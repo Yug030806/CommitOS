@@ -13,6 +13,7 @@ import {
   Plus,
   ShieldAlert,
   Lock,
+  X,
 } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
 import { Meeting, Task, DecisionConflict, TeamMember } from '@/lib/types';
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [conflicts, setConflicts] = useState<DecisionConflict[]>([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [dismissedAlert, setDismissedAlert] = useState(false);
   const [currentUser, setCurrentUser] = useState<TeamMember>(() => CommitOSStore.getCurrentUser());
 
   const loadData = () => {
@@ -87,8 +89,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Decision Conflict Alert (Shown only if unresolved conflict exists) */}
-      {pendingConflicts.length > 0 && (
+      {/* Decision Conflict Alert (Shown only if unresolved conflict exists and not dismissed) */}
+      {!dismissedAlert && pendingConflicts.length > 0 && (
         <div className="p-3.5 rounded-xl bg-zinc-900 border border-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
             <ShieldAlert className="w-4 h-4 text-white shrink-0" />
@@ -96,12 +98,21 @@ export default function DashboardPage() {
               <strong className="text-white">Decision Conflict:</strong> Meeting 3 proposed changing the event date to December 20, contradicting the approved December 15 schedule.
             </p>
           </div>
-          <Link
-            href={`/meetings/${pendingConflicts[0].newMeetingId}`}
-            className="px-3 py-1 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-colors shrink-0 text-center"
-          >
-            Review &amp; Triage →
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/meetings/${pendingConflicts[0].newMeetingId}`}
+              className="px-3 py-1 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-colors shrink-0 text-center"
+            >
+              Review &amp; Triage →
+            </Link>
+            <button
+              onClick={() => setDismissedAlert(true)}
+              className="text-zinc-500 hover:text-zinc-300 p-1 transition-colors"
+              title="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 

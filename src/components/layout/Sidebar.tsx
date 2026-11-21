@@ -34,6 +34,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const [org, setOrg] = useState<Organization | null>(null);
   const [allOrgs, setAllOrgs] = useState<Organization[]>([]);
   const [pendingConflicts, setPendingConflicts] = useState<DecisionConflict[]>([]);
+  const [dismissedConflictIds, setDismissedConflictIds] = useState<string[]>([]);
   const [risks, setRisks] = useState<ExecutionRisk[]>([]);
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<TeamMember>(() => CommitOSStore.getCurrentUser());
@@ -54,6 +55,10 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     window.addEventListener('commitos_storage_updated', refreshState);
     return () => window.removeEventListener('commitos_storage_updated', refreshState);
   }, []);
+
+  useEffect(() => {
+    refreshState();
+  }, [pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -220,20 +225,31 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </div>
 
         {/* Signature Conflict Notification Banner if any */}
-        {pendingConflicts.length > 0 && (
-          <div className="mx-3 mt-3 p-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs flex items-start gap-2">
-            <ShieldAlert className="w-4 h-4 text-white shrink-0 mt-0.5" />
-            <div className="min-w-0">
-              <p className="font-semibold text-white text-[11px]">Conflict Detected</p>
-              <p className="text-[10px] text-zinc-400 truncate">Dec 15 vs Dec 20 date drift</p>
-              <Link
-                href="/meetings/meet-003"
-                onClick={onClose}
-                className="text-[10px] text-zinc-300 hover:text-white underline font-medium inline-block mt-0.5"
-              >
-                Review & Triage →
-              </Link>
+        {pendingConflicts.filter((c) => !dismissedConflictIds.includes(c.id)).length > 0 && (
+          <div className="mx-3 mt-3 p-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs flex items-start justify-between gap-2 animate-in fade-in">
+            <div className="flex items-start gap-2 min-w-0">
+              <ShieldAlert className="w-4 h-4 text-white shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="font-semibold text-white text-[11px]">Conflict Detected</p>
+                <p className="text-[10px] text-zinc-400 truncate">
+                  {pendingConflicts[0].previousValue} vs {pendingConflicts[0].proposedValue} date drift
+                </p>
+                <Link
+                  href={`/meetings/${pendingConflicts[0].newMeetingId}`}
+                  onClick={onClose}
+                  className="text-[10px] text-zinc-300 hover:text-white underline font-medium inline-block mt-0.5"
+                >
+                  Review & Triage →
+                </Link>
+              </div>
             </div>
+            <button
+              onClick={() => setDismissedConflictIds((prev) => [...prev, pendingConflicts[0].id])}
+              className="text-zinc-500 hover:text-white p-0.5 transition-colors shrink-0"
+              title="Dismiss notification"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
         )}
 

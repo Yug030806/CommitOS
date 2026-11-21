@@ -59,15 +59,11 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
       }
 
       // 2. Client-side state persistence
-      if (newStatus === 'approved') {
-        CommitOSStore.resolveConflict(conflict.id, 'approved');
-        setStatus('approved');
-      } else if (newStatus === 'rejected') {
-        CommitOSStore.resolveConflict(conflict.id, 'rejected');
-        setStatus('rejected');
-      } else {
-        setStatus('discussed');
+      const storeRes = CommitOSStore.resolveConflict(conflict.id, newStatus, undefined, currentUser);
+      if (!storeRes.success) {
+        throw new Error(storeRes.message);
       }
+      setStatus(newStatus);
 
       if (onResolved) onResolved();
     } catch (err: any) {
