@@ -3,21 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  ShieldCheck,
-  User,
-  Users,
-  Building,
-  ArrowRight,
-  Sparkles,
-  CheckCircle2,
-  Lock,
-  AlertCircle,
-  Briefcase,
-} from 'lucide-react';
+import { ArrowRight, AlertCircle } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
 import { AppRole, TeamMember } from '@/lib/types';
 import { ROLE_DEFINITIONS } from '@/lib/rbac';
+import AuthBackground from '@/components/auth/AuthBackground';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -85,147 +75,117 @@ export default function SignUpPage() {
         setError(err.message || 'Registration failed.');
         setIsLoading(false);
       }
-    }, 400);
+    }, 350);
   };
 
-  const activeDef = ROLE_DEFINITIONS[selectedRole];
-
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex items-center justify-center p-4 selection:bg-zinc-800 selection:text-white">
-      <div className="w-full max-w-xl space-y-8 animate-in fade-in duration-300">
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-100 to-zinc-400 flex items-center justify-center text-black font-black text-lg shadow-md">
-              C
-            </div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">CommitOS</h1>
+    <div className="min-h-screen relative flex items-center justify-center p-4 selection:bg-white selection:text-black">
+      {/* 3D Organic Dark Geometry Background */}
+      <AuthBackground />
+
+      {/* Main Glassmorphic Card Container */}
+      <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-300 my-8">
+        <div className="rounded-3xl bg-black/40 backdrop-blur-2xl border border-white/10 p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)]">
+          {/* Header (Matches Screenshot Typography) */}
+          <div className="text-center mb-7">
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">
+              Create Account
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-400 mt-2">
+              Sign up to join your organizational workspace
+            </p>
           </div>
-          <h2 className="text-sm font-semibold text-zinc-300">Create Your Role-Based Member Account</h2>
-          <p className="text-xs text-zinc-500 max-w-md mx-auto">
-            Choose your organization role to register permissions and join the workspace.
-          </p>
-        </div>
 
-        {/* Form Card */}
-        <div className="rounded-2xl bg-[#121217] border border-[#23232f] shadow-2xl p-6 sm:p-8 space-y-6">
-          {/* Step 1: Choose Primary Role */}
-          <div className="space-y-2.5">
-            <label className="text-xs font-semibold text-zinc-300 flex items-center justify-between">
-              <span>Step 1: Choose Your Primary Role</span>
-              <span className="text-[11px] text-zinc-500 font-mono">Permissions Enforced</span>
+          {/* Role Portal Segmented Control */}
+          <div className="space-y-1.5 mb-5">
+            <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+              Role Portal
             </label>
-
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 p-1 rounded-xl bg-white/[0.04] border border-white/10">
               {(['org_admin', 'team_leader', 'team_member'] as AppRole[]).map((r) => {
-                const def = ROLE_DEFINITIONS[r];
                 const isSelected = selectedRole === r;
+                const label = r === 'org_admin' ? 'Admin' : r === 'team_leader' ? 'Leader' : 'Member';
                 return (
                   <button
                     key={r}
                     type="button"
                     onClick={() => setSelectedRole(r)}
-                    className={`p-3 rounded-xl border text-left transition-all relative flex flex-col justify-between min-h-[95px] ${
+                    className={`py-2 text-xs font-semibold rounded-lg transition-all text-center ${
                       isSelected
-                        ? 'bg-zinc-800/90 border-zinc-400 text-white shadow-lg ring-1 ring-zinc-400/40'
-                        : 'bg-[#15151e] border-[#252535] text-zinc-400 hover:text-zinc-200 hover:bg-[#1a1a24]'
+                        ? 'bg-white text-black font-bold shadow-md'
+                        : 'text-zinc-400 hover:text-white'
                     }`}
                   >
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border uppercase font-bold ${def.badgeClass}`}>
-                          {def.badgeLabel}
-                        </span>
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                      </div>
-                      <p className="text-xs font-bold text-white mt-2 leading-tight">
-                        {def.label.replace('Organization ', '')}
-                      </p>
-                    </div>
-
-                    <span className="text-[10px] text-zinc-500 font-mono mt-1">
-                      {r === 'org_admin' ? 'Executive' : r === 'team_leader' ? 'Leadership' : 'Contributor'}
-                    </span>
+                    {label}
                   </button>
                 );
               })}
             </div>
-
-            <div className="p-3 rounded-xl bg-[#15151e] border border-[#222230] text-xs text-zinc-400">
-              <strong className="text-white">{activeDef.label}:</strong> {activeDef.description}
-            </div>
           </div>
 
-          {/* Step 2: Account Details */}
+          {/* Form */}
           <form onSubmit={handleSignUp} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Ananya Roy"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#16161f] border border-[#262635] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">Designation Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Lead Producer, Logistics Head"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#16161f] border border-[#262635] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400 transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="ananya@organization.org"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#16161f] border border-[#262635] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400 font-mono transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1">Password</label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Create secure password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#16161f] border border-[#262635] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400 font-mono transition-colors"
-                />
-              </div>
+            <div>
+              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">
+                Username
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Choose a username"
+                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-all font-normal"
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">Select Organization</label>
+              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">
+                Email Address
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-all font-normal"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-all font-normal font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">
+                Organization
+              </label>
               <select
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#16161f] border border-[#262635] text-xs text-white focus:outline-none focus:border-zinc-400 transition-colors"
+                className="w-full px-4 py-3.5 rounded-xl bg-zinc-900 border border-white/10 text-sm text-white focus:outline-none focus:border-white/30 transition-all"
               >
                 {allOrgs.map((o) => (
                   <option key={o.id} value={o.name}>
-                    {o.name} ({o.members.length} members)
+                    {o.name}
                   </option>
                 ))}
               </select>
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-white/[0.05] border border-white/15 text-xs text-zinc-300 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-zinc-400" />
                 <span>{error}</span>
               </div>
@@ -234,19 +194,19 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs transition-all shadow-lg active:scale-[0.99] flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] mt-6 disabled:opacity-50"
             >
-              <span>Register & Enter as {activeDef.label}</span>
+              <span>{isLoading ? 'Creating Account...' : 'Sign Up'}</span>
               <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           </form>
 
-          {/* Switch to Sign In */}
-          <div className="pt-2 text-center border-t border-[#20202d]">
+          {/* Footer Link */}
+          <div className="text-center mt-6">
             <p className="text-xs text-zinc-400">
               Already have an account?{' '}
-              <Link href="/signin" className="text-white font-semibold hover:underline">
-                Sign In to Existing Portal →
+              <Link href="/signin" className="text-white font-bold hover:underline">
+                Log In
               </Link>
             </p>
           </div>

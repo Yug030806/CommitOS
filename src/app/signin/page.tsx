@@ -3,22 +3,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  ShieldCheck,
-  User,
-  Users,
-  Lock,
-  ArrowRight,
-  Sparkles,
-  CheckCircle2,
-  Building,
-  KeyRound,
-  AlertCircle,
-} from 'lucide-react';
+import { ArrowRight, AlertCircle, Check } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
 import { AppRole, TeamMember } from '@/lib/types';
 import { ROLE_DEFINITIONS } from '@/lib/rbac';
 import { DEMO_MEMBERS } from '@/lib/demo-data';
+import AuthBackground from '@/components/auth/AuthBackground';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -28,18 +18,18 @@ export default function SignInPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const rolePresets: Record<AppRole, { member: TeamMember; hint: string }> = {
+  const rolePresets: Record<AppRole, { member: TeamMember; label: string }> = {
     org_admin: {
       member: DEMO_MEMBERS[0], // Yug
-      hint: 'Full admin privileges, member invites, decision conflict ratifications & settings.',
+      label: 'Admin',
     },
     team_leader: {
       member: DEMO_MEMBERS[1], // Rahul
-      hint: 'Upload & process meetings, review AI intelligence, assign tasks & monitor milestones.',
+      label: 'Team Leader',
     },
     team_member: {
       member: DEMO_MEMBERS[3], // Priya
-      hint: 'View permitted meetings, update assigned task status & query organizational memory.',
+      label: 'Team Member',
     },
   };
 
@@ -63,7 +53,6 @@ export default function SignInPage() {
         );
 
         if (!targetMember) {
-          // If custom email or role preset
           targetMember = {
             id: `usr-${Date.now()}`,
             userId: `uid-${Date.now()}`,
@@ -82,151 +71,86 @@ export default function SignInPage() {
         setError(err.message || 'Authentication failed.');
         setIsLoading(false);
       }
-    }, 400);
+    }, 350);
   };
-
-  const handleQuickLogin = (role: AppRole) => {
-    const preset = rolePresets[role];
-    CommitOSStore.login(preset.member);
-    router.push('/');
-  };
-
-  const activeDef = ROLE_DEFINITIONS[selectedRole];
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex items-center justify-center p-4 selection:bg-zinc-800 selection:text-white">
-      <div className="w-full max-w-xl space-y-8 animate-in fade-in duration-300">
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 p-1.5 px-3 rounded-full bg-[#14141d] border border-[#232333] text-xs text-zinc-300 font-mono shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-zinc-400" />
-            <span>Role-Based Access Control • Active</span>
+    <div className="min-h-screen relative flex items-center justify-center p-4 selection:bg-white selection:text-black">
+      {/* 3D Organic Dark Geometry Background */}
+      <AuthBackground />
+
+      {/* Main Glassmorphic Card Container */}
+      <div className="w-full max-w-md relative z-10 animate-in fade-in zoom-in-95 duration-300">
+        <div className="rounded-3xl bg-black/40 backdrop-blur-2xl border border-white/10 p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)]">
+          {/* Header */}
+          <div className="text-center mb-7">
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">
+              Sign In
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-400 mt-2">
+              Sign in to access your meetings, decisions &amp; tasks
+            </p>
           </div>
 
-          <div className="flex items-center justify-center gap-3 pt-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-100 to-zinc-400 flex items-center justify-center text-black font-black text-lg shadow-md">
-              C
-            </div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">CommitOS</h1>
-          </div>
-          <p className="text-xs text-zinc-400 max-w-md mx-auto">
-            Your Meetings. Now, Executed. Authenticate with your assigned organizational role to enter.
-          </p>
-        </div>
-
-        {/* Main Sign-In Card */}
-        <div className="rounded-2xl bg-[#121217] border border-[#23232f] shadow-2xl p-6 sm:p-8 space-y-6">
-          {/* Step 1: Role Selection Tabs */}
-          <div className="space-y-2.5">
-            <label className="text-xs font-semibold text-zinc-300 flex items-center justify-between">
-              <span>Select Access Role Portal</span>
-              <span className="text-[11px] text-zinc-500 font-mono">Step 1 of 2</span>
+          {/* Role Portal Segmented Control */}
+          <div className="space-y-1.5 mb-5">
+            <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+              Role Portal
             </label>
-
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 p-1 rounded-xl bg-white/[0.04] border border-white/10">
               {(['org_admin', 'team_leader', 'team_member'] as AppRole[]).map((r) => {
-                const def = ROLE_DEFINITIONS[r];
                 const isSelected = selectedRole === r;
+                const label = rolePresets[r].label;
                 return (
                   <button
                     key={r}
                     type="button"
                     onClick={() => handleSelectRole(r)}
-                    className={`p-3 rounded-xl border text-left transition-all relative flex flex-col justify-between min-h-[90px] ${
+                    className={`py-2 text-xs font-semibold rounded-lg transition-all text-center ${
                       isSelected
-                        ? 'bg-zinc-800/90 border-zinc-400 text-white shadow-lg ring-1 ring-zinc-400/40'
-                        : 'bg-[#15151e] border-[#252535] text-zinc-400 hover:text-zinc-200 hover:bg-[#1a1a24]'
+                        ? 'bg-white text-black font-bold shadow-md'
+                        : 'text-zinc-400 hover:text-white'
                     }`}
                   >
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border uppercase font-bold ${def.badgeClass}`}>
-                          {def.badgeLabel}
-                        </span>
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                      </div>
-                      <p className="text-xs font-bold text-white mt-2 leading-tight">
-                        {def.label.replace('Organization ', '')}
-                      </p>
-                    </div>
-
-                    <span className="text-[10px] text-zinc-500 font-mono mt-2">
-                      {r === 'org_admin' ? 'Full Access' : r === 'team_leader' ? 'Lead & Manage' : 'Tasks & RAG'}
-                    </span>
+                    {label}
                   </button>
                 );
               })}
             </div>
-
-            {/* Selected Role Scope Callout */}
-            <div className="p-3 rounded-xl bg-[#15151e] border border-[#222230] text-xs text-zinc-300 flex items-start gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-zinc-300 shrink-0 mt-0.5" />
-              <div className="min-w-0">
-                <p className="font-semibold text-white text-[11px]">{activeDef.label} Permissions:</p>
-                <p className="text-[11px] text-zinc-400 leading-relaxed mt-0.5">{rolePresets[selectedRole].hint}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick 1-Click Role Login */}
-          <div className="p-3 rounded-xl bg-[#181822] border border-[#2a2a3b] flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-xs font-semibold text-white truncate">
-                  Sign in as {rolePresets[selectedRole].member.name}
-                </p>
-                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono border ${activeDef.badgeClass}`}>
-                  {activeDef.badgeLabel}
-                </span>
-              </div>
-              <p className="text-[10px] text-zinc-400 truncate mt-0.5">{rolePresets[selectedRole].member.email}</p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handleQuickLogin(selectedRole)}
-              className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-xs font-semibold text-black transition-colors shrink-0 flex items-center gap-1.5"
-            >
-              <span>Instant Enter</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="relative flex items-center justify-center">
-            <div className="border-t border-[#232332] w-full" />
-            <span className="bg-[#121217] px-3 text-[11px] text-zinc-500 uppercase tracking-wider font-mono">
-              Or sign in with email
-            </span>
           </div>
 
           {/* Credentials Form */}
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">Email Address</label>
+              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">
+                Email Address
+              </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="your.email@organization.org"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#16161f] border border-[#262635] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400 font-mono transition-colors"
+                placeholder="you@example.com"
+                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-all font-normal"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">Password</label>
+              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">
+                Password
+              </label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#16161f] border border-[#262635] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-400 font-mono transition-colors"
+                placeholder="••••••••"
+                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-all font-normal font-mono"
               />
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-white/[0.05] border border-white/15 text-xs text-zinc-300 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-zinc-400" />
                 <span>{error}</span>
               </div>
@@ -235,19 +159,19 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs transition-all shadow-lg active:scale-[0.99] flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] mt-6 disabled:opacity-50"
             >
-              <span>Sign In as {activeDef.label}</span>
+              <span>{isLoading ? 'Signing In...' : 'Sign In'}</span>
               <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           </form>
 
-          {/* Switch to Sign Up */}
-          <div className="pt-2 text-center border-t border-[#20202d]">
+          {/* Footer Link */}
+          <div className="text-center mt-6">
             <p className="text-xs text-zinc-400">
-              Need a new organizational account?{' '}
-              <Link href="/signup" className="text-white font-semibold hover:underline">
-                Sign Up with Role Selection →
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="text-white font-bold hover:underline">
+                Sign Up
               </Link>
             </p>
           </div>

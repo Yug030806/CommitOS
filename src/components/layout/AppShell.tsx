@@ -25,7 +25,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   // Auth pages render without shell
   if (isAuthRoute) {
-    return <main className="min-h-screen w-full bg-[#09090b]">{children}</main>;
+    return <main className="min-h-screen w-full bg-[#050507]">{children}</main>;
   }
 
   // If user explicitly logged out and on protected page
