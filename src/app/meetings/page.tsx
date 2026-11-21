@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Video,
-  Plus,
   Search,
   Filter,
   Clock,
@@ -17,15 +16,11 @@ import {
 } from 'lucide-react';
 import { CommitOSStore } from '@/lib/store';
 import { Meeting, TeamMember } from '@/lib/types';
-import { RBAC } from '@/lib/rbac';
-import { Lock } from 'lucide-react';
-import UploadMeetingModal from '@/components/meetings/UploadMeetingModal';
 
 export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<Meeting[]>(() => CommitOSStore.getMeetings());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'processed' | 'needs_review'>('all');
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<TeamMember>(() => CommitOSStore.getCurrentUser());
 
   const loadMeetings = () => {
@@ -38,8 +33,6 @@ export default function MeetingsPage() {
     window.addEventListener('commitos_storage_updated', loadMeetings);
     return () => window.removeEventListener('commitos_storage_updated', loadMeetings);
   }, []);
-
-  const canUpload = RBAC.canUploadMeetings(currentUser.role);
 
   const filteredMeetings = meetings.filter((m) => {
     const matchesSearch =
@@ -61,25 +54,6 @@ export default function MeetingsPage() {
             Transcribed recordings, structured decisions, and cross-meeting intelligence
           </p>
         </div>
-
-        {canUpload ? (
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-zinc-200 transition-all shadow-md active:scale-95 shrink-0 self-start sm:self-center"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Upload Recording</span>
-          </button>
-        ) : (
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 border border-zinc-700/60 text-xs transition-all shrink-0 self-start sm:self-center"
-            title="Upload requires Organization Admin or Team Leader privileges. Team Members have read-only access."
-          >
-            <Lock className="w-3.5 h-3.5 text-zinc-500" />
-            <span>Upload Recording</span>
-          </button>
-        )}
       </div>
 
       {/* Filter and Search Bar */}
@@ -194,9 +168,6 @@ export default function MeetingsPage() {
           <p className="text-xs text-zinc-500">Try adjusting your search or upload a new recording.</p>
         </div>
       )}
-
-      {/* Upload Meeting Modal */}
-      <UploadMeetingModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
     </div>
   );
 }
