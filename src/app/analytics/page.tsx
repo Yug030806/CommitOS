@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
           <span className="text-xs text-zinc-400 font-medium">Active Decisions</span>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-black text-white">{decisions.length}</span>
-            <span className="text-xs text-emerald-400">0 Overridden</span>
+            <span className="text-xs text-zinc-300">0 Overridden</span>
           </div>
           <p className="text-[11px] text-zinc-500 mt-1">Across 3 historical sessions</p>
         </div>
@@ -126,11 +126,11 @@ export default function AnalyticsPage() {
           <p className="text-[11px] text-zinc-500 mt-1">High conversion to action items</p>
         </div>
 
-        <div className="p-5 rounded-xl bg-[#121217] border border-rose-500/30">
+        <div className="p-5 rounded-xl bg-[#121217] border border-zinc-700">
           <span className="text-xs text-zinc-400 font-medium">Flagship Event Risk Score</span>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-rose-400">HIGH</span>
-            <span className="text-xs text-rose-300 font-mono">Dec 15</span>
+            <span className="text-3xl font-black text-white">HIGH</span>
+            <span className="text-xs text-zinc-400 font-mono">Dec 15</span>
           </div>
           <p className="text-[11px] text-zinc-500 mt-1">Poster & sponsor blockers active</p>
         </div>
@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
                 <div className="h-2 rounded-full bg-[#1e1e27] overflow-hidden">
                   <div
                     className={`h-full rounded-full ${
-                      rf.level >= 80 ? 'bg-rose-500' : rf.level >= 60 ? 'bg-amber-400' : 'bg-zinc-400'
+                      rf.level >= 80 ? 'bg-zinc-100' : rf.level >= 60 ? 'bg-zinc-400' : 'bg-zinc-600'
                     }`}
                     style={{ width: `${rf.level}%` }}
                   />

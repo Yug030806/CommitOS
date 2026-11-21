@@ -210,7 +210,7 @@ function SettingsContent() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-white tracking-tight">Organization & Team Access</h1>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
               RBAC Protected
             </span>
           </div>
@@ -221,14 +221,6 @@ function SettingsContent() {
 
         {/* Current Active Persona Banner */}
         <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[#14141d] border border-[#262635] text-xs">
-          <div className="w-7 h-7 rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
-            {currentUser.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
-            ) : (
-              currentUser.name[0]
-            )}
-          </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-semibold text-white">{currentUser.name}</span>
@@ -281,7 +273,7 @@ function SettingsContent() {
           <div className="p-4 rounded-xl bg-[#14141e] border border-[#232332] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white mt-0.5">
-                <ShieldCheck className="w-5 h-5 text-rose-400" />
+                <ShieldCheck className="w-5 h-5 text-zinc-200" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -330,7 +322,7 @@ function SettingsContent() {
               <h4 className="text-xs font-bold text-white flex items-center gap-2">
                 <span>Authorize Team Leaders to Ratify Decision Changes</span>
                 {isAdmin && (
-                  <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                  <span className="text-[10px] text-zinc-300 font-mono bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">
                     Admin Controlled
                   </span>
                 )}
@@ -348,7 +340,7 @@ function SettingsContent() {
                 disabled={!isAdmin}
                 className="sr-only peer"
               />
-              <div className={`w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 ${!isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
+              <div className={`w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-white ${!isAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
             </label>
           </div>
 
@@ -373,28 +365,17 @@ function SettingsContent() {
                     className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#16161f] transition-colors"
                   >
                     {/* Member Details */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center text-sm font-bold text-white shrink-0 shadow-sm">
-                        {member.avatar ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
-                        ) : (
-                          member.name.slice(0, 2).toUpperCase()
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-white truncate">{member.name}</p>
+                        {isCurrent && (
+                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono">
+                            You
+                          </span>
                         )}
                       </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-white truncate">{member.name}</p>
-                          {isCurrent && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono">
-                              You
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-zinc-400 truncate">{member.email}</p>
-                        <p className="text-[11px] text-zinc-500 mt-0.5">{member.title}</p>
-                      </div>
+                      <p className="text-xs text-zinc-400 truncate">{member.email}</p>
+                      <p className="text-[11px] text-zinc-500 mt-0.5">{member.title}</p>
                     </div>
 
                     {/* Role Badge & Actions */}
@@ -425,7 +406,7 @@ function SettingsContent() {
                             className={`p-1.5 rounded-lg transition-colors border ${
                               isCurrent
                                 ? 'bg-zinc-800/40 text-zinc-600 border-zinc-800 cursor-not-allowed'
-                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/20'
+                                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border-zinc-700'
                             }`}
                             title={isCurrent ? 'Cannot remove your own admin account' : 'Remove member from organization'}
                           >
@@ -611,13 +592,13 @@ function SettingsContent() {
               </div>
 
               {inviteError && (
-                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
+                <div className="p-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs">
                   {inviteError}
                 </div>
               )}
 
               {inviteSuccess && (
-                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-1.5">
+                <div className="p-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-xs flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>{inviteSuccess}</span>
                 </div>
@@ -658,19 +639,9 @@ function SettingsContent() {
             </div>
 
             <form onSubmit={handleSaveRoleEdit} className="space-y-4">
-              <div className="p-3 rounded-lg bg-[#161620] border border-[#242432] flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">
-                  {editingMember.avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={editingMember.avatar} alt={editingMember.name} className="w-full h-full object-cover" />
-                  ) : (
-                    editingMember.name[0]
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-white">{editingMember.name}</p>
-                  <p className="text-[11px] text-zinc-400">{editingMember.email}</p>
-                </div>
+              <div className="p-3 rounded-lg bg-[#161620] border border-[#242432]">
+                <p className="text-xs font-semibold text-white">{editingMember.name}</p>
+                <p className="text-[11px] text-zinc-400">{editingMember.email}</p>
               </div>
 
               <div>
@@ -705,7 +676,7 @@ function SettingsContent() {
                           <p className="text-xs font-bold">{rDef.label}</p>
                           <p className="text-[10px] text-zinc-400">{rDef.description}</p>
                         </div>
-                        {isSelected && <Check className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />}
+                        {isSelected && <Check className="w-4 h-4 text-white shrink-0 ml-2" />}
                       </button>
                     );
                   })}
@@ -713,7 +684,7 @@ function SettingsContent() {
               </div>
 
               {editError && (
-                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
+                <div className="p-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs">
                   {editError}
                 </div>
               )}

@@ -142,8 +142,8 @@ export default function MeetingsPage() {
                 <span
                   className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-semibold ${
                     m.status === 'processed'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      ? 'bg-zinc-800 text-zinc-200 border border-zinc-700'
+                      : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                   }`}
                 >
                   {m.status.replace('_', ' ')}
@@ -162,7 +162,7 @@ export default function MeetingsPage() {
               </div>
 
               {m.conflictDetected && (
-                <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex items-center gap-1.5">
+                <div className="p-2 rounded-lg bg-zinc-800 border border-zinc-700 text-[11px] text-zinc-300 flex items-center gap-1.5 font-mono">
                   <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
                   <span>Decision Conflict Detected</span>
                 </div>

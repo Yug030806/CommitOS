@@ -213,7 +213,7 @@ export default function TasksPage() {
             }`}
           >
             <span>Assigned to Me</span>
-            {assigneeFilter === currentUser.name && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+            {assigneeFilter === currentUser.name && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
           </button>
 
           {/* Member Filter */}
@@ -276,10 +276,10 @@ export default function TasksPage() {
                         <span
                           className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded font-semibold ${
                             task.priority === 'urgent'
-                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                              ? 'bg-zinc-100 text-zinc-900 border border-zinc-200'
                               : task.priority === 'high'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                              : 'bg-zinc-800 text-zinc-400'
+                              ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+                              : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                           }`}
                         >
                           {task.priority}
@@ -288,7 +288,7 @@ export default function TasksPage() {
                         {canDelete && (
                           <button
                             onClick={() => handleDeleteTask(task.id)}
-                            className="text-zinc-600 hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100"
+                            className="text-zinc-600 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                             title="Delete task"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -364,10 +364,10 @@ export default function TasksPage() {
                     onClick={() =>
                       handleUpdateStatus(t.id, t.status === 'completed' ? 'todo' : 'completed')
                     }
-                    className="text-zinc-500 hover:text-emerald-400"
+                    className="text-zinc-500 hover:text-white"
                   >
                     {t.status === 'completed' ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <CheckCircle2 className="w-4 h-4 text-white" />
                     ) : (
                       <Circle className="w-4 h-4" />
                     )}
@@ -399,10 +399,10 @@ export default function TasksPage() {
                   <span
                     className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded font-semibold ${
                       t.priority === 'urgent'
-                        ? 'bg-rose-500/20 text-rose-300'
+                        ? 'bg-zinc-100 text-zinc-900 border border-zinc-200'
                         : t.priority === 'high'
-                        ? 'bg-amber-500/20 text-amber-300'
-                        : 'bg-zinc-800 text-zinc-400'
+                        ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+                        : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                     }`}
                   >
                     {t.priority}
@@ -413,7 +413,7 @@ export default function TasksPage() {
                   {canDelete && (
                     <button
                       onClick={() => handleDeleteTask(t.id)}
-                      className="text-zinc-600 hover:text-rose-400 transition-colors p-1"
+                      className="text-zinc-600 hover:text-white transition-colors p-1"
                       title="Delete task"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

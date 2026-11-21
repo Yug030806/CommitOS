@@ -13,7 +13,6 @@ import {
   ChevronDown,
   Sparkles,
   ShieldAlert,
-  Radio,
   ExternalLink,
   Building,
   Check,
@@ -30,7 +29,6 @@ export default function Sidebar() {
   const [allOrgs, setAllOrgs] = useState<Organization[]>([]);
   const [pendingConflicts, setPendingConflicts] = useState<DecisionConflict[]>([]);
   const [risks, setRisks] = useState<ExecutionRisk[]>([]);
-  const [isLiveAI, setIsLiveAI] = useState(false);
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<TeamMember>(() => CommitOSStore.getCurrentUser());
 
@@ -43,8 +41,6 @@ export default function Sidebar() {
     setPendingConflicts(conflicts);
     setRisks(CommitOSStore.getRisks());
     setCurrentUser(CommitOSStore.getCurrentUser());
-    const settings = CommitOSStore.getSettings();
-    setIsLiveAI(Boolean(settings.geminiApiKey));
   };
 
   useEffect(() => {
@@ -80,7 +76,7 @@ export default function Sidebar() {
       href: '/meetings',
       icon: Video,
       badge: pendingConflicts.length > 0 ? `${pendingConflicts.length} alert` : null,
-      badgeColor: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+      badgeColor: 'bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono',
     },
     {
       name: 'Tasks',
@@ -238,44 +234,24 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      {/* Footer Area: AI Mode Status & Current User Identity */}
-      <div className="p-3 border-t border-[#1f1f27] space-y-2 bg-[#0a0a0e]">
-        {/* Live Engine Indicator */}
-        <div className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-[#121217] border border-[#21212a] text-[11px]">
-          <div className="flex items-center gap-1.5">
-            <span className={`w-2 h-2 rounded-full ${isLiveAI ? 'bg-emerald-400 animate-ping' : 'bg-emerald-400'}`} />
-            <span className="text-zinc-300 font-medium">{isLiveAI ? 'Gemini Live AI' : 'Live Engine Ready'}</span>
-          </div>
-          <Link href="/settings" className="text-zinc-500 hover:text-zinc-300" title="Settings & Team Roster">
-            <Radio className="w-3 h-3" />
-          </Link>
-        </div>
-
-        {/* User Identity Card with Role Badge & Sign Out */}
-        <div className="flex items-center gap-2 p-2 rounded-lg bg-[#14141a] border border-[#22222d]">
-          <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-800 border border-zinc-700 shrink-0 flex items-center justify-center text-xs font-bold text-white">
-            {currentUser.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
-            ) : (
-              currentUser.name[0]
-            )}
-          </div>
+      {/* Footer Area: Current User Identity */}
+      <div className="p-3 border-t border-[#1f1f27] bg-[#0a0a0e]">
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#14141a] border border-[#22222d]">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1.5">
               <p className="text-xs font-semibold text-zinc-100 truncate">{currentUser.name}</p>
-              <span className={`text-[9px] px-1 py-0.2 rounded font-mono border shrink-0 ${roleDef.badgeClass}`}>
+              <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono border shrink-0 ${roleDef.badgeClass}`}>
                 {roleDef.badgeLabel}
               </span>
             </div>
-            <p className="text-[10px] text-zinc-400 truncate">{currentUser.title}</p>
+            <p className="text-[10px] text-zinc-400 truncate mt-0.5">{currentUser.title}</p>
           </div>
           <button
             onClick={() => {
               CommitOSStore.logout();
               window.location.href = '/signin';
             }}
-            className="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+            className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors shrink-0 ml-2"
             title="Sign Out"
           >
             <LogOut className="w-3.5 h-3.5" />

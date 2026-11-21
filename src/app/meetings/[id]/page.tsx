@@ -82,7 +82,7 @@ export default function MeetingDetailPage({ params }: PageProps) {
 
         <div className="flex items-center gap-2">
           {conflicts.some((c) => c.status === 'pending') && (
-            <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold animate-pulse-subtle">
+            <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-200 border border-zinc-700 font-semibold font-mono">
               <ShieldAlert className="w-3.5 h-3.5" />
               <span>Conflict Pending Triage</span>
             </span>
@@ -90,8 +90,8 @@ export default function MeetingDetailPage({ params }: PageProps) {
           <span
             className={`text-xs px-2.5 py-1 rounded-full font-mono font-medium ${
               meeting.status === 'processed'
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+                : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
             }`}
           >
             {meeting.status.toUpperCase()}
@@ -157,9 +157,9 @@ export default function MeetingDetailPage({ params }: PageProps) {
                 isActive
                   ? 'bg-zinc-800 text-white border border-zinc-700 shadow'
                   : 'text-zinc-400 hover:text-white hover:bg-[#15151c]'
-              } ${tab.highlight ? 'text-amber-300' : ''}`}
+              }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${tab.highlight ? 'text-amber-400' : ''}`} />
+              <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
             </button>
           );
@@ -196,14 +196,14 @@ export default function MeetingDetailPage({ params }: PageProps) {
 
             <div className="p-5 rounded-xl bg-[#121217] border border-[#23232f] space-y-3">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+                <HelpCircle className="w-3.5 h-3.5 text-zinc-400" />
                 <span>Unresolved Questions</span>
               </h3>
               {meeting.unresolvedQuestions.length > 0 ? (
                 <ul className="space-y-2 text-xs text-zinc-300">
                   {meeting.unresolvedQuestions.map((q, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-1.5 shrink-0" />
                       <span>{q}</span>
                     </li>
                   ))}
@@ -283,12 +283,10 @@ export default function MeetingDetailPage({ params }: PageProps) {
                     AI Confidence: {Math.round(d.confidence * 100)}%
                   </span>
                   <span
-                    className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize font-mono ${
                       d.status === 'approved'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : d.status === 'proposed'
-                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                        ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+                        : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                     }`}
                   >
                     {d.status}
@@ -332,10 +330,10 @@ export default function MeetingDetailPage({ params }: PageProps) {
                 <span
                   className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-semibold ${
                     task.priority === 'urgent'
-                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                      ? 'bg-zinc-100 text-zinc-900 border border-zinc-200'
                       : task.priority === 'high'
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      : 'bg-zinc-800 text-zinc-400'
+                      ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+                      : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                   }`}
                 >
                   {task.priority}
@@ -349,8 +347,8 @@ export default function MeetingDetailPage({ params }: PageProps) {
                   }}
                   className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                     task.status === 'completed'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700'
+                      ? 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                      : 'bg-white hover:bg-zinc-200 text-black font-semibold'
                   }`}
                 >
                   {task.status === 'completed' ? 'Completed' : 'Mark Done'}
@@ -367,7 +365,7 @@ export default function MeetingDetailPage({ params }: PageProps) {
           {conflicts.length > 0 ? (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-amber-400" />
+                <ShieldAlert className="w-4 h-4 text-zinc-300" />
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider">
                   Cross-Meeting Contradiction Analysis
                 </h3>
@@ -378,7 +376,7 @@ export default function MeetingDetailPage({ params }: PageProps) {
             </div>
           ) : (
             <div className="p-8 rounded-xl bg-[#121217] border border-[#23232f] text-center space-y-2">
-              <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+              <CheckCircle2 className="w-8 h-8 text-white mx-auto" />
               <h3 className="text-sm font-semibold text-white">No Decision Conflicts Detected</h3>
               <p className="text-xs text-zinc-400 max-w-md mx-auto">
                 All decisions ratified in this meeting align consistently with historical organizational memory.

@@ -43,20 +43,20 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
   if (!canUpload) {
     return (
       <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-[#121218] border border-rose-500/30 rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
-          <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+        <div className="bg-[#121218] border border-zinc-700 rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
+          <div className="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300 flex items-center justify-center mx-auto">
             <ShieldAlert className="w-6 h-6" />
           </div>
           <div>
             <h3 className="text-base font-bold text-white">Permission Required</h3>
             <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
               Your current role is <strong className="text-zinc-200">Team Member</strong> ({currentUser.name}).
-              Only <strong className="text-rose-300">Organization Admins</strong> and <strong className="text-amber-300">Team Leaders</strong> are authorized to upload recordings and trigger AI meeting ingestion.
+              Only <strong className="text-white">Organization Admins</strong> and <strong className="text-zinc-200">Team Leaders</strong> are authorized to upload recordings and trigger AI meeting ingestion.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white transition-colors"
+            className="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white transition-colors border border-zinc-700"
           >
             Close
           </button>
@@ -209,13 +209,13 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
                         isCurrent
                           ? 'bg-zinc-800 border-zinc-600 shadow-md scale-[1.02]'
                           : isDone
-                          ? 'bg-[#15151b] border-emerald-500/20 text-zinc-400'
+                          ? 'bg-[#15151b] border-zinc-700 text-zinc-300'
                           : 'bg-[#101015] border-[#1f1f27] opacity-40'
                       }`}
                     >
                       <div className="shrink-0">
                         {isDone ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          <CheckCircle2 className="w-4 h-4 text-white" />
                         ) : isCurrent ? (
                           <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin block" />
                         ) : (
@@ -283,7 +283,7 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
                     className="flex items-center gap-1.5 text-[11px] text-zinc-300 hover:text-white px-2.5 py-1 rounded-md bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700 transition-colors"
                     title="Insert sample executive sync transcript to test live AI extraction"
                   >
-                    <FileText className="w-3 h-3 text-emerald-400" />
+                    <FileText className="w-3 h-3 text-zinc-300" />
                     <span>Insert Sample Transcript</span>
                   </button>
                 </div>
@@ -330,7 +330,7 @@ export default function UploadMeetingModal({ isOpen, onClose }: UploadMeetingMod
               )}
 
               {errorMessage && (
-                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-center gap-2">
+                <div className="p-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-200 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{errorMessage}</span>
                 </div>

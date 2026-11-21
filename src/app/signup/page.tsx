@@ -54,7 +54,6 @@ export default function SignUpPage() {
           email: email.trim().toLowerCase(),
           role: selectedRole,
           title: title.trim() || ROLE_DEFINITIONS[selectedRole].label,
-          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name.trim())}`,
           joinedAt: new Date().toISOString(),
           status: 'active',
         };
@@ -137,7 +136,7 @@ export default function SignUpPage() {
                         <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border uppercase font-bold ${def.badgeClass}`}>
                           {def.badgeLabel}
                         </span>
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                       </div>
                       <p className="text-xs font-bold text-white mt-2 leading-tight">
                         {def.label.replace('Organization ', '')}
@@ -226,8 +225,8 @@ export default function SignUpPage() {
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <div className="p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-zinc-400" />
                 <span>{error}</span>
               </div>
             )}

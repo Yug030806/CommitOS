@@ -303,7 +303,6 @@ export class CommitOSStore {
       email: data.email.trim().toLowerCase(),
       role: data.role,
       title: data.title.trim() || 'Team Contributor',
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(data.name)}`,
       joinedAt: new Date().toISOString(),
       status: 'active',
     };

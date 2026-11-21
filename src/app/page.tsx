@@ -113,28 +113,28 @@ export default function DashboardPage() {
 
       {/* Signature Conflict Alert Banner if any conflict is pending */}
       {pendingConflicts.length > 0 && (
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 rounded-xl bg-[#14141a] border border-zinc-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 shrink-0">
+            <div className="p-2 rounded-lg bg-zinc-800 text-zinc-200 border border-zinc-700 shrink-0">
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-amber-300 uppercase tracking-wide">
-                  Signature AI Alert: Decision Contradiction Detected
+                <span className="text-xs font-bold text-white uppercase tracking-wide">
+                  Decision Contradiction Detected
                 </span>
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-mono">
+                <span className="text-[10px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded-full font-mono border border-zinc-700">
                   Needs Triage
                 </span>
               </div>
               <p className="text-xs text-zinc-300 mt-1">
-                Meeting 3 proposed shifting the flagship event to <strong className="text-amber-200">December 20</strong>, contradicting the approved <strong className="text-white">December 15</strong> date from Meeting 1.
+                Meeting 3 proposed shifting the flagship event to <strong className="text-white">December 20</strong>, contradicting the approved <strong className="text-white">December 15</strong> date from Meeting 1.
               </p>
             </div>
           </div>
           <Link
             href={`/meetings/${pendingConflicts[0].newMeetingId}`}
-            className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs text-center transition-colors shrink-0"
+            className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs text-center transition-colors shrink-0 shadow-sm"
           >
             Review & Ratify Triage →
           </Link>
@@ -151,7 +151,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-white">{totalMeetings}</span>
-            <span className="text-xs text-emerald-400 font-medium">All Transcribed</span>
+            <span className="text-xs text-zinc-300 font-medium">All Transcribed</span>
           </div>
           <p className="text-[11px] text-zinc-500 mt-1">100% memory preserved</p>
         </div>
@@ -173,26 +173,26 @@ export default function DashboardPage() {
         <div className="p-5 rounded-xl bg-[#121217] border border-[#23232f] hover:border-zinc-700 transition-all">
           <div className="flex items-center justify-between text-zinc-400">
             <span className="text-xs font-medium">Tasks On Track</span>
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <TrendingUp className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-emerald-400">{tasksOnTrack}</span>
+            <span className="text-2xl font-bold text-white">{tasksOnTrack}</span>
             <span className="text-xs text-zinc-400">of {totalTasks - completedTasks} active</span>
           </div>
           <p className="text-[11px] text-zinc-500 mt-1">Monitored against deadlines</p>
         </div>
 
         {/* Execution Risks */}
-        <div className="p-5 rounded-xl bg-[#121217] border border-rose-500/30 hover:border-rose-500/50 transition-all">
+        <div className="p-5 rounded-xl bg-[#121217] border border-zinc-700 hover:border-zinc-500 transition-all">
           <div className="flex items-center justify-between text-zinc-400">
             <span className="text-xs font-medium">Execution Risks</span>
-            <AlertTriangle className="w-4 h-4 text-rose-400" />
+            <AlertTriangle className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-rose-400">
+            <span className="text-2xl font-bold text-white">
               {highRisk ? 'HIGH' : 'LOW'}
             </span>
-            <span className="text-[11px] text-rose-300 font-mono">Milestone Alert</span>
+            <span className="text-[11px] text-zinc-400 font-mono">Milestone Alert</span>
           </div>
           <p className="text-[11px] text-zinc-400 mt-1 truncate">
             {highRisk ? 'Dec 15 Event at Risk' : 'Operational stability normal'}
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                   AI Risk & Execution Intelligence
                 </h3>
               </div>
-              <span className="text-[10px] font-mono bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded border border-rose-500/30">
+              <span className="text-[10px] font-mono bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded border border-zinc-700">
                 Predictor Agent Active
               </span>
             </div>
@@ -223,7 +223,7 @@ export default function DashboardPage() {
             {highRisk ? (
               <div className="space-y-2">
                 <div className="flex items-start gap-2">
-                  <span className="text-xs font-bold text-rose-400 uppercase mt-0.5">Execution Risk: HIGH</span>
+                  <span className="text-xs font-bold text-white uppercase mt-0.5">Execution Risk: HIGH</span>
                 </div>
                 <p className="text-xs text-zinc-200 leading-relaxed">{highRisk.reason}</p>
                 <div className="p-3 rounded-lg bg-[#0e0e13] border border-[#232330] text-xs space-y-1">
@@ -267,15 +267,15 @@ export default function DashboardPage() {
                         {m.title}
                       </span>
                       {m.conflictDetected && (
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono">
                           Conflict
                         </span>
                       )}
                       <span
                         className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
                           m.status === 'processed'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            ? 'bg-zinc-800 text-zinc-200 border border-zinc-700'
+                            : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                         }`}
                       >
                         {m.status}
@@ -331,10 +331,10 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       <button
                         onClick={() => toggleTaskStatus(task)}
-                        className="text-zinc-500 hover:text-emerald-400 transition-colors shrink-0"
+                        className="text-zinc-500 hover:text-white transition-colors shrink-0"
                       >
                         {isDone ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          <CheckCircle2 className="w-4 h-4 text-white" />
                         ) : (
                           <Circle className="w-4 h-4" />
                         )}
@@ -358,10 +358,10 @@ export default function DashboardPage() {
                       <span
                         className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded font-semibold ${
                           task.priority === 'urgent'
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            ? 'bg-zinc-100 text-zinc-900 border border-zinc-200'
                             : task.priority === 'high'
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                            : 'bg-zinc-800 text-zinc-400'
+                            ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+                            : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                         }`}
                       >
                         {task.priority}
@@ -400,10 +400,10 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-mono text-zinc-400 uppercase">{d.category}</span>
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${
+                      className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
                         d.status === 'approved'
-                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
+                          ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+                          : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                       }`}
                     >
                       {d.status}

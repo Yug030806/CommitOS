@@ -186,7 +186,7 @@ export default function MemoryPage() {
                     <div className="flex items-center gap-2 text-xs">
                       <span className="line-through text-zinc-500">{hist.previousValue}</span>
                       <ArrowRight className="w-3 h-3 text-zinc-400" />
-                      <span className="text-emerald-400 font-semibold">{hist.newValue}</span>
+                      <span className="text-white font-semibold">{hist.newValue}</span>
                     </div>
 
                     <p className="text-[11px] text-zinc-400">{hist.reason}</p>
@@ -215,7 +215,7 @@ export default function MemoryPage() {
               </div>
               <div className="flex justify-between py-1 border-b border-[#1f1f28]">
                 <span className="text-zinc-400">Contradiction Sentinel</span>
-                <span className="text-emerald-400 font-medium">Active (Gemini + pgvector)</span>
+                <span className="text-zinc-200 font-medium">Active (Gemini + pgvector)</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-zinc-400">Memory Retention</span>

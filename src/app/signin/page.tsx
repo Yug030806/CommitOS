@@ -72,7 +72,6 @@ export default function SignInPage() {
             email: email.toLowerCase(),
             role: selectedRole,
             title: ROLE_DEFINITIONS[selectedRole].label,
-            avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(email)}`,
             status: 'active',
           };
         }
@@ -100,7 +99,7 @@ export default function SignInPage() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 p-1.5 px-3 rounded-full bg-[#14141d] border border-[#232333] text-xs text-zinc-300 font-mono shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-zinc-400" />
             <span>Role-Based Access Control • Active</span>
           </div>
 
@@ -144,7 +143,7 @@ export default function SignInPage() {
                         <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border uppercase font-bold ${def.badgeClass}`}>
                           {def.badgeLabel}
                         </span>
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                       </div>
                       <p className="text-xs font-bold text-white mt-2 leading-tight">
                         {def.label.replace('Organization ', '')}
@@ -161,7 +160,7 @@ export default function SignInPage() {
 
             {/* Selected Role Scope Callout */}
             <div className="p-3 rounded-xl bg-[#15151e] border border-[#222230] text-xs text-zinc-300 flex items-start gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <ShieldCheck className="w-4 h-4 text-zinc-300 shrink-0 mt-0.5" />
               <div className="min-w-0">
                 <p className="font-semibold text-white text-[11px]">{activeDef.label} Permissions:</p>
                 <p className="text-[11px] text-zinc-400 leading-relaxed mt-0.5">{rolePresets[selectedRole].hint}</p>
@@ -171,27 +170,22 @@ export default function SignInPage() {
 
           {/* Quick 1-Click Role Login */}
           <div className="p-3 rounded-xl bg-[#181822] border border-[#2a2a3b] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={rolePresets[selectedRole].member.avatar}
-                  alt={rolePresets[selectedRole].member.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="min-w-0">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
                 <p className="text-xs font-semibold text-white truncate">
                   Sign in as {rolePresets[selectedRole].member.name}
                 </p>
-                <p className="text-[10px] text-zinc-400 truncate">{rolePresets[selectedRole].member.email}</p>
+                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono border ${activeDef.badgeClass}`}>
+                  {activeDef.badgeLabel}
+                </span>
               </div>
+              <p className="text-[10px] text-zinc-400 truncate mt-0.5">{rolePresets[selectedRole].member.email}</p>
             </div>
 
             <button
               type="button"
               onClick={() => handleQuickLogin(selectedRole)}
-              className="px-3 py-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-xs font-semibold text-white transition-colors shrink-0 flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-xs font-semibold text-black transition-colors shrink-0 flex items-center gap-1.5"
             >
               <span>Instant Enter</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -232,8 +226,8 @@ export default function SignInPage() {
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <div className="p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-zinc-400" />
                 <span>{error}</span>
               </div>
             )}

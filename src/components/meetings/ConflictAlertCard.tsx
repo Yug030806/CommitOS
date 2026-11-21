@@ -1,62 +1,48 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   ShieldAlert,
-  ArrowRight,
   CheckCircle2,
   XCircle,
   MessageSquare,
-  Sparkles,
-  History,
   AlertTriangle,
+  History,
   Lock,
   UserCheck,
 } from 'lucide-react';
-import { DecisionConflict, ConflictStatus } from '@/lib/types';
+import { DecisionConflict, TeamMember } from '@/lib/types';
 import { CommitOSStore } from '@/lib/store';
 import { RBAC, ROLE_DEFINITIONS } from '@/lib/rbac';
 
 interface ConflictAlertCardProps {
   conflict: DecisionConflict;
-  onResolved?: (status: ConflictStatus) => void;
+  onResolved?: () => void;
 }
 
 export default function ConflictAlertCard({ conflict, onResolved }: ConflictAlertCardProps) {
-  const [status, setStatus] = useState<ConflictStatus>(conflict.status);
+  const [status, setStatus] = useState<DecisionConflict['status']>(conflict.status);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [serverVerified, setServerVerified] = useState(false);
-  const [currentUser, setCurrentUser] = useState(() => CommitOSStore.getCurrentUser());
-  const [isLeaderAuthorized, setIsLeaderAuthorized] = useState(() => CommitOSStore.isLeaderApprovalAuthorized());
 
-  const syncUser = () => {
-    setCurrentUser(CommitOSStore.getCurrentUser());
-    setIsLeaderAuthorized(CommitOSStore.isLeaderApprovalAuthorized());
-  };
-
-  useEffect(() => {
-    syncUser();
-    window.addEventListener('commitos_storage_updated', syncUser);
-    return () => window.removeEventListener('commitos_storage_updated', syncUser);
-  }, []);
+  const currentUser: TeamMember = CommitOSStore.getCurrentUser();
+  const isLeaderAuthorized = CommitOSStore.isLeaderApprovalAuthorized();
 
   const canApproveResult = RBAC.canApproveDecisionConflict(currentUser.role, isLeaderAuthorized);
-  const canReject = RBAC.canRejectDecisionConflict(currentUser.role);
-  const canDiscuss = RBAC.canRequestDiscussion(currentUser.role);
+  const canReject = currentUser.role === 'org_admin' || currentUser.role === 'team_leader';
 
-  const handleTriageAction = async (action: ConflictStatus) => {
-    setErrorMessage('');
+  const handleTriageAction = async (newStatus: 'approved' | 'rejected' | 'discussed') => {
     setIsSubmitting(true);
+    setErrorMessage('');
 
     try {
-      // MANDATORY SERVER-SIDE PERMISSION VERIFICATION
+      // 1. Server-side permission barrier check
       const res = await fetch('/api/triage-conflict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conflictId: conflict.id,
-          action,
+          action: newStatus,
           actor: {
             id: currentUser.id,
             name: currentUser.name,
@@ -64,40 +50,26 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
             organizationId: CommitOSStore.getActiveOrgId(),
           },
           isLeaderAuthorized,
-          resolutionNotes:
-            action === 'approved'
-              ? `Ratified date revision to "${conflict.proposedValue}" by ${currentUser.name} (${ROLE_DEFINITIONS[currentUser.role].label})`
-              : action === 'rejected'
-              ? `Rejected revision to maintain "${conflict.previousValue}" by ${currentUser.name}`
-              : `Flagged for leadership discussion by ${currentUser.name}`,
         }),
       });
 
       const data = await res.json();
-
       if (!res.ok) {
-        throw new Error(data.reason || data.error || 'Server rejected decision change.');
+        throw new Error(data.reason || data.error || 'Server rejected action due to insufficient permissions.');
       }
 
-      // Persist in local store with server-verified actor metadata
-      const storeRes = CommitOSStore.resolveConflict(
-        conflict.id,
-        action,
-        action === 'approved'
-          ? `Ratified date revision in conflict triage by ${currentUser.name}`
-          : action === 'rejected'
-          ? `Rejected date revision by ${currentUser.name}`
-          : `Flagged for discussion by ${currentUser.name}`,
-        currentUser
-      );
-
-      if (!storeRes.success) {
-        throw new Error(storeRes.message);
+      // 2. Client-side state persistence
+      if (newStatus === 'approved') {
+        CommitOSStore.resolveConflict(conflict.id, 'approved');
+        setStatus('approved');
+      } else if (newStatus === 'rejected') {
+        CommitOSStore.resolveConflict(conflict.id, 'rejected');
+        setStatus('rejected');
+      } else {
+        setStatus('discussed');
       }
 
-      setStatus(action);
-      setServerVerified(true);
-      if (onResolved) onResolved(action);
+      if (onResolved) onResolved();
     } catch (err: any) {
       setErrorMessage(err.message || 'Permission denied.');
     } finally {
@@ -106,33 +78,25 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
   };
 
   return (
-    <div className="rounded-xl bg-[#14141a] border border-amber-500/30 overflow-hidden shadow-xl">
+    <div className="rounded-xl bg-[#14141a] border border-zinc-700 overflow-hidden shadow-xl">
       {/* Top Banner */}
-      <div className="px-5 py-3 bg-amber-500/15 border-b border-amber-500/20 flex items-center justify-between">
+      <div className="px-5 py-3 bg-[#181822] border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1 rounded-md bg-amber-500/20 text-amber-400">
+          <div className="p-1 rounded-md bg-zinc-800 text-zinc-200 border border-zinc-700">
             <ShieldAlert className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-amber-300 tracking-wide uppercase">
-              Signature AI: Decision Conflict Detected
+            <h4 className="text-xs font-bold text-white tracking-wide uppercase">
+              Decision Conflict Detected
             </h4>
-            <p className="text-[11px] text-amber-200/70">
+            <p className="text-[11px] text-zinc-400">
               Contradiction identified between current discussion and historical organizational memory
             </p>
           </div>
         </div>
 
         {status !== 'pending' && (
-          <span
-            className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
-              status === 'approved'
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                : status === 'rejected'
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
-            }`}
-          >
+          <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize bg-zinc-800 text-zinc-200 border border-zinc-700 font-mono">
             {status}
           </span>
         )}
@@ -144,7 +108,7 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
           {/* Previous Approved Decision */}
           <div className="p-3.5 rounded-lg bg-[#0d0d12] border border-[#23232f] space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-300 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
                 Previously Approved
               </span>
               <span className="text-[11px] text-zinc-500">{conflict.previousMeetingDate}</span>
@@ -156,14 +120,14 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
           </div>
 
           {/* New Proposal */}
-          <div className="p-3.5 rounded-lg bg-[#0d0d12] border border-amber-500/30 space-y-1.5">
+          <div className="p-3.5 rounded-lg bg-[#0d0d12] border border-zinc-700 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-zinc-800 px-2 py-0.5 rounded border border-zinc-600">
                 New Proposal
               </span>
               <span className="text-[11px] text-zinc-500">Proposed in this meeting</span>
             </div>
-            <p className="text-sm font-semibold text-amber-200">{conflict.proposedValue}</p>
+            <p className="text-sm font-semibold text-white">{conflict.proposedValue}</p>
             <p className="text-[11px] text-zinc-400">
               Source: <span className="text-zinc-200">{conflict.newMeetingTitle}</span>
             </p>
@@ -174,7 +138,7 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
         <div className="space-y-2 text-xs">
           <div className="p-3 rounded-lg bg-[#181822] border border-[#2b2b3a] space-y-1">
             <p className="font-semibold text-zinc-200 text-[11px] flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+              <AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />
               <span>Conflict Rationale</span>
             </p>
             <p className="text-zinc-300 leading-relaxed text-[11px]">{conflict.conflictReason}</p>
@@ -182,7 +146,7 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
 
           <div className="p-3 rounded-lg bg-[#181822] border border-[#2b2b3a] space-y-1">
             <p className="font-semibold text-zinc-200 text-[11px] flex items-center gap-1.5">
-              <History className="w-3.5 h-3.5 text-blue-400" />
+              <History className="w-3.5 h-3.5 text-zinc-400" />
               <span>Execution Blast Radius</span>
             </p>
             <p className="text-zinc-300 leading-relaxed text-[11px]">{conflict.impact}</p>
@@ -191,8 +155,8 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
 
         {/* Error notification if server rejects action */}
         {errorMessage && (
-          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-            <Lock className="w-4 h-4 shrink-0" />
+          <div className="p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs flex items-center gap-2">
+            <Lock className="w-4 h-4 shrink-0 text-zinc-400" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -208,7 +172,7 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
                   {ROLE_DEFINITIONS[currentUser.role].label}
                 </span>
                 {currentUser.role === 'team_leader' && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${isLeaderAuthorized ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-zinc-800 text-zinc-400'}`}>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono border ${isLeaderAuthorized ? 'bg-zinc-800 text-zinc-200 border-zinc-700' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}>
                     {isLeaderAuthorized ? 'Admin Delegated' : 'Unratified Leader'}
                   </span>
                 )}
@@ -220,9 +184,9 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
                   <button
                     onClick={() => handleTriageAction('rejected')}
                     disabled={isSubmitting}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 text-xs font-medium transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-medium transition-colors"
                   >
-                    <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                    <XCircle className="w-3.5 h-3.5 text-zinc-400" />
                     <span>Reject Change</span>
                   </button>
                 ) : (
@@ -240,7 +204,7 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
                 <button
                   onClick={() => handleTriageAction('discussed')}
                   disabled={isSubmitting}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 text-xs font-medium transition-colors"
                 >
                   <MessageSquare className="w-3.5 h-3.5 text-zinc-400" />
                   <span>Request Discussion</span>
@@ -251,7 +215,7 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
                   <button
                     onClick={() => handleTriageAction('approved')}
                     disabled={isSubmitting}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-black font-semibold text-xs transition-colors shadow active:scale-95"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-colors shadow active:scale-95"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>Approve Change</span>
@@ -262,7 +226,7 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/60 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-400 border border-zinc-700/60 text-xs font-medium transition-colors cursor-pointer"
                     title={canApproveResult.reason}
                   >
-                    <Lock className="w-3.5 h-3.5 text-amber-500/80" />
+                    <Lock className="w-3.5 h-3.5 text-zinc-400" />
                     <span>Approve (Admin Required)</span>
                   </button>
                 )}
@@ -282,7 +246,7 @@ export default function ConflictAlertCard({ conflict, onResolved }: ConflictAler
         ) : (
           <div className="pt-2 border-t border-[#22222e] text-xs text-zinc-400 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
-              <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <UserCheck className="w-3.5 h-3.5 text-white" />
               <span>Resolution ratified and verified on server</span>
             </span>
             <span className="text-[11px] text-zinc-500 font-mono">
