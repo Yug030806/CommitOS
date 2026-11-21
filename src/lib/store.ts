@@ -183,22 +183,25 @@ export class CommitOSStore {
 
   // Current active user persona and authentication session
   static isAuthenticated(): boolean {
-    if (typeof window === 'undefined') return true;
+    if (typeof window === 'undefined') return false;
     const authUser = safeGet<TeamMember | null>(STORAGE_KEYS.AUTH_USER, null);
     if (!authUser) {
-      const isLoggedOut = safeGet<boolean>('commitos_is_logged_out', false);
-      if (!isLoggedOut) {
-        const defaultAdmin = DEMO_MEMBERS[0];
-        safeSet(STORAGE_KEYS.AUTH_USER, defaultAdmin);
-        safeSet(STORAGE_KEYS.CURRENT_USER, defaultAdmin);
-        return true;
-      }
       return false;
+    }
+    // Also check document cookie
+    if (typeof document !== 'undefined') {
+      const hasCookie = document.cookie.split(';').some((c) => c.trim().startsWith('commitos_auth=true'));
+      if (!hasCookie) {
+        document.cookie = 'commitos_auth=true; path=/; max-age=2592000; SameSite=Lax';
+      }
     }
     return true;
   }
 
   static login(user: TeamMember): void {
+    if (typeof document !== 'undefined') {
+      document.cookie = 'commitos_auth=true; path=/; max-age=2592000; SameSite=Lax';
+    }
     safeSet('commitos_is_logged_out', false);
     safeSet(STORAGE_KEYS.AUTH_USER, user);
     safeSet(STORAGE_KEYS.CURRENT_USER, user);
@@ -218,6 +221,9 @@ export class CommitOSStore {
   }
 
   static logout(): void {
+    if (typeof document !== 'undefined') {
+      document.cookie = 'commitos_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+    }
     const actor = this.getCurrentUser();
     if (actor) {
       this.addAuditLog({

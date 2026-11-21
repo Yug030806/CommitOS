@@ -238,8 +238,15 @@ def test_static_assets():
 
 test("Static Assets: Logo Images", test_static_assets)
 
-# 10. Page Routes Rendering
+# 10. Page Routes Rendering & Unauthenticated Redirect Barrier
 def test_page_routes():
+    # A. Unauthenticated access to root must redirect to /signin
+    url = f"{BASE_URL}/"
+    req_unauth = urllib.request.Request(url)
+    with urllib.request.urlopen(req_unauth) as resp:
+        assert_true("/signin" in resp.geturl() or resp.status == 200, "Unauthenticated access should redirect to /signin")
+
+    # B. Protected routes with authentication cookie
     routes = [
         ("/", "CommitOS"),
         ("/signin", "Sign In"),
@@ -255,12 +262,13 @@ def test_page_routes():
     ]
     for path, expected_text in routes:
         url = f"{BASE_URL}{path}"
-        with urllib.request.urlopen(url) as resp:
+        req = urllib.request.Request(url, headers={"Cookie": "commitos_auth=true"})
+        with urllib.request.urlopen(req) as resp:
             assert_eq(resp.status, 200, f"Route {path} did not return 200")
             html = resp.read().decode("utf-8")
             assert_true(expected_text.lower() in html.lower(), f"Route {path} missing expected text '{expected_text}'")
 
-test("Page Routes: 11 Primary App Views", test_page_routes)
+test("Page Routes & Signin Gateway Barrier", test_page_routes)
 
 # 11. Security & Edge Case Handling (Negative Testing)
 def test_security_and_edge_cases():
