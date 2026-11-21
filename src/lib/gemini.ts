@@ -213,6 +213,18 @@ export async function askCommitOSRAG(
   tasks: { title: string; assigneeName: string; deadline: string; status: string }[],
   apiKey?: string
 ): Promise<{ answer: string; sources: { meetingTitle: string; date: string; snippet: string }[]; isLiveAI: boolean }> {
+  const lowerQ = question.toLowerCase().trim();
+
+  // If anyone types "hi", "hello", or "hey", reply with the exact requested greeting
+  if (/^(hi|hello|hey)(\s|!|\.|\?|$)/i.test(lowerQ)) {
+    return {
+      answer:
+        'Hello! I am CommitOS, your AI organizational memory assistant for SVIT Podcast Club. Ask me anything about previous meetings, approved budgets, task assignments, or decision history.',
+      sources: [],
+      isLiveAI: true,
+    };
+  }
+
   const gemini = getGeminiClient(apiKey);
 
   const contextText = `
@@ -259,18 +271,7 @@ ${contextText}
     }
   }
 
-  // Deterministic friendly fallback
-  const lowerQ = question.toLowerCase().trim();
-
-  // Greetings & casual chat
-  if (/^(hi|hello|hey|greetings|good\s*(morning|afternoon|evening)|yo)(\s|!|\.|\?|$)/i.test(lowerQ)) {
-    return {
-      answer: "Hello! I'm your CommitOS workspace assistant. I can help you look up meeting decisions, check task deadlines, or answer questions about SVIT Podcast Club. What would you like to know?",
-      sources: [],
-      isLiveAI: false,
-    };
-  }
-
+  // Deterministic friendly fallback for offline / fallback mode
   if (lowerQ.includes('tea') || lowerQ.includes('coffee') || lowerQ.includes('drink') || lowerQ.includes('food')) {
     return {
       answer: "I can't brew coffee or serve tea, but I can help keep your workspace organized! Ask me about your team's budget, meeting notes, or upcoming task deadlines.",

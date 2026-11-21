@@ -820,15 +820,8 @@ export class CommitOSStore {
   }
 
   static getChatMessages(): ChatMessage[] {
-    const org = this.getOrganization();
-    return safeGet<ChatMessage[]>(STORAGE_KEYS.CHAT_MESSAGES, [
-      {
-        id: 'msg-welcome',
-        role: 'assistant',
-        content: `Hello! I am CommitOS, your AI organizational memory assistant for ${org.name}. Ask me anything about previous meetings, approved budgets, task assignments, or decision history.`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      },
-    ]);
+    const msgs = safeGet<ChatMessage[]>(STORAGE_KEYS.CHAT_MESSAGES, []);
+    return msgs.filter((m) => m.id !== 'msg-welcome');
   }
 
   static addChatMessage(message: ChatMessage): void {
