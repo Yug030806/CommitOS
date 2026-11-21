@@ -88,3 +88,79 @@ body {
 .glow-white {
   box-shadow: 0 0 20px -5px rgba(255, 255, 255, 0.15);
 }
+
+/* Auth Background Kinetic Animations */
+@keyframes sculpture-slow-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sculpture-breathe {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-12px) scale(1.03);
+  }
+}
+
+@keyframes ambient-drift-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+    opacity: 0.22;
+  }
+  50% {
+    transform: translate(40px, -30px) scale(1.25);
+    opacity: 0.38;
+  }
+}
+
+@keyframes ambient-drift-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1.1);
+    opacity: 0.18;
+  }
+  50% {
+    transform: translate(-35px, 35px) scale(0.95);
+    opacity: 0.32;
+  }
+}
+
+@keyframes light-orbit-path {
+  0% {
+    transform: rotate(0deg) translateX(180px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(180px) rotate(-360deg);
+  }
+}
+
+.animate-sculpture-float {
+  animation: sculpture-breathe 10s ease-in-out infinite;
+}
+
+.animate-sculpture-spin {
+  animation: sculpture-slow-spin 80s linear infinite;
+  transform-origin: center center;
+}
+
+.animate-sculpture-spin-reverse {
+  animation: sculpture-slow-spin 45s linear infinite reverse;
+  transform-origin: center center;
+}
+
+.animate-ambient-1 {
+  animation: ambient-drift-1 12s ease-in-out infinite;
+}
+
+.animate-ambient-2 {
+  animation: ambient-drift-2 16s ease-in-out infinite;
+}
+
+.animate-orbit-light {
+  animation: light-orbit-path 18s linear infinite;
+}

@@ -92,12 +92,12 @@ export default function SignInPage() {
             </p>
           </div>
 
-          {/* Role Portal Segmented Control */}
+          {/* Role Portal Segmented Control (Translucent Glass Tabs) */}
           <div className="space-y-1.5 mb-5">
             <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
               Role Portal
             </label>
-            <div className="grid grid-cols-3 p-1 rounded-xl bg-white/[0.04] border border-white/10">
+            <div className="grid grid-cols-3 p-1 rounded-xl bg-white/[0.04] backdrop-blur-md border border-white/10">
               {(['org_admin', 'team_leader', 'team_member'] as AppRole[]).map((r) => {
                 const isSelected = selectedRole === r;
                 const label = rolePresets[r].label;
@@ -106,10 +106,10 @@ export default function SignInPage() {
                     key={r}
                     type="button"
                     onClick={() => handleSelectRole(r)}
-                    className={`py-2 text-xs font-semibold rounded-lg transition-all text-center ${
+                    className={`py-2 text-xs rounded-lg transition-all text-center ${
                       isSelected
-                        ? 'bg-white text-black font-bold shadow-md'
-                        : 'text-zinc-400 hover:text-white'
+                        ? 'bg-white/[0.16] text-white font-bold backdrop-blur-lg border border-white/25 shadow-[0_0_15px_rgba(255,255,255,0.08)]'
+                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent font-medium'
                     }`}
                   >
                     {label}
